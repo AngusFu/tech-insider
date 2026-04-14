@@ -16,8 +16,24 @@
 
 ## 快速开始
 
+### 方式一：通过 Marketplace 安装（推荐）
+
 ```bash
-# 从 GitHub 仓库启动
+# 添加 marketplace（如果使用 Git 仓库）
+/plugin marketplace add https://github.com/example/source-code-book-plugin.git
+
+# 安装插件
+/plugin install source-code-book@source-code-book-marketplace
+
+# 在 Claude Code 中运行
+/source-code-book:start https://github.com/NousResearch/hermes-agent \
+  --title "Hermes Agent 深度解析" \
+  --subtitle "从源码理解自我进化的 AI Agent 架构"
+```
+
+### 方式二：本地开发模式
+
+```bash
 claude --plugin-dir /path/to/source-code-book-plugin
 
 # 然后在 Claude Code 中运行：

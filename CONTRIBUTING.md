@@ -3,14 +3,18 @@
 ## Development
 
 ```bash
-# Clone the repo
+# 克隆仓库
 git clone https://github.com/example/source-code-book-plugin.git
 cd source-code-book-plugin
 
-# Test locally with Claude Code
+# 方式一：本地测试
 claude --plugin-dir .
 
-# In Claude Code, run:
+# 方式二：通过 marketplace 测试（更贴近真实安装）
+/plugin marketplace add .
+/plugin install source-code-book@source-code-book-marketplace
+
+# 在 Claude Code 中运行
 /source-code-book:start https://github.com/example/repo --title "Test Book"
 ```
 
