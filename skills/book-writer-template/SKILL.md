@@ -1,6 +1,6 @@
 ---
-name: book-writer
-description: 源码深度解析书籍的章节 Writer。当收到写作任务时，根据 STYLE_GUIDE.md 和 BOOK_PLAN.md 撰写指定章节。支持 Mermaid 图表、设计决策框、代码引用等标准格式。
+name: book-writer-template
+description: 源码深度解析书籍的章节写作模板。定义章节结构、写作规则、Mermaid 规范、代码引用格式。供 Writer agents 参考。
 user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
 ---

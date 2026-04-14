@@ -22,11 +22,11 @@ argument-hint: <repo-url-or-path> --title "书名" [--subtitle "副标题"] [--f
 
 **如果缺少必需参数（仓库路径或 title），用 AskUserQuestion 询问用户补全。**
 
-确认参数后，**加载 `source-code-book` skill 并将参数传递给它**，由 skill 执行完整的出版管线。
+确认参数后，**加载 `book-pipeline` skill 并将参数传递给它**，由 skill 执行完整的出版管线。
 
 ## 技能加载
 
-使用 Skill 工具加载 `source-code-book` skill，告知用户你已收到：
+使用 Skill 工具加载 `book-pipeline` skill，告知用户你已收到：
 - 仓库：`<repo>`
 - 书名：`<title>`
 - 副标题：`<subtitle>`（如有）

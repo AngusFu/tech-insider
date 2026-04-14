@@ -1,11 +1,11 @@
 ---
-name: source-code-book
-description: 启动源码深度解析书籍出版管线。与 /source-code-book:start 命令相同。根据管线阶段需要，使用 subagent 并行执行工作。
+name: book-pipeline
+description: 启动源码深度解析书籍出版管线。编排 Agent Teams 并行工作，完成从克隆到终稿的全流程。与 /source-code-book:start 命令相同。
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion
 ---
 
-# 源码深度解析书籍 — Skill（管线编排）
+# 源码深度解析书籍 — 管线编排
 
 你直接执行完整的书籍出版管线。按阶段顺序推进，每个阶段内根据需要**使用 subagent 并行执行**工作。
 
@@ -13,8 +13,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion
 
 ## 何时使用
 
-- 用户调用此 skill（通过 Skill 工具或 `/source-code-book`）
-- `/source-code-book:start` 命令会加载此 skill 并传递参数
+- 用户调用此 skill（通过 Skill 工具或 `/source-code-book:start` 命令）
 - 适用于：完整书籍生产、快速体验、调试管线逻辑
 
 ## 参数解析
@@ -44,18 +43,25 @@ mkdir -p "$BOOK_DIR"
 
 ```
 输入：仓库 URL 或本地路径
-输出：代码库指标（文件数、行数、目录结构）
+输出：代码库指标（文件数、行数、目录结构、语言分布）
 ```
 
 1. 如果是 URL，`git clone`；如果是本地路径，验证存在
-2. 统计指标：
+2. **检测语言分布**（polyglot）：
    ```bash
-   find . -name "*.py" | wc -l
-   find . -name "*.py" -exec cat {} + | wc -l
-   find . -type d -maxdepth 2 | sort
+   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.js" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" \) | \
+     sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
    ```
-3. 阅读 README.md、入口文件，理解架构
-4. 向用户展示分析结果，确认进入下一步
+3. 统计指标（按主语言）：
+   ```bash
+   # 按上一步检测到的主语言替换扩展名
+   find . -type f -name "*.py" | wc -l
+   find . -type f -name "*.py" -exec cat {} + | wc -l
+   find . -type d -name "test*" -o -name "spec*" -o -name "__test*" | wc -l
+   find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort
+   ```
+4. 阅读 README.md、入口文件，理解架构
+5. 向用户展示分析结果
 
 ### Phase 2：规划
 
@@ -64,7 +70,7 @@ mkdir -p "$BOOK_DIR"
 输出：BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 ```
 
-1. 启动 **book-planner** agent，传入代码库路径、书名、副标题、关注领域、`BOOK_DIR`
+1. **并行启动** **book-planner** agent，传入代码库路径、书名、副标题、关注领域、`BOOK_DIR`
 2. 等待完成后，验证三个文件都已生成
 3. 向用户展示规划摘要（章节数、Part 分布）
 
@@ -72,20 +78,21 @@ mkdir -p "$BOOK_DIR"
 
 ```
 输入：BOOK_PLAN.md + STYLE_GUIDE.md
-输出：ch01.md ~ ch16.md
+输出：各章 chXX-*.md 文件
 ```
 
-1. 按章节分配给 Writer：
-   - **book-writer-foundation** → Ch01-03（基础篇）
-   - **book-writer-core-loop** → Ch04-05（核心篇 A — 对话循环）
-   - **book-writer-core-system** → Ch06-07（核心篇 B — 模型调度与记忆）
-   - **book-writer-tools** → Ch08-10（工具篇）
-   - **book-writer-integration** → Ch11-16（整合与工程篇）
-2. 每个 Writer 收到：其负责的章节描述、`STYLE_GUIDE.md`、`BOOK_PLAN.md`、代码库路径
+1. 按 `BOOK_PLAN.md` 的章节分配给 Writer：
+   - **book-writer-foundation** → 基础篇（前 2-3 章）
+   - **book-writer-core-loop** → 核心循环篇（对话引擎相关章节）
+   - **book-writer-core-system** → 核心系统篇（基础设施相关章节）
+   - **book-writer-tools** → 工具/子系统篇
+   - **book-writer-integration** → 整合与工程实践篇
+   > 每个 Writer 从 `BOOK_PLAN.md` 读取自己被分配的具体章节，不是写死在 agent 文件里
+2. 每个 Writer 收到：`STYLE_GUIDE.md`、`BOOK_PLAN.md`、代码库路径
 3. **5 个 Writer 并行启动**
-4. 完成后收集结果，向用户展示进度（N/5 完成）
+4. 完成后收集结果，向用户展示进度
 
-### Phase 4：三审
+### Phase 4：审稿
 
 #### 4a. 初审（逐章）
 
@@ -94,8 +101,8 @@ mkdir -p "$BOOK_DIR"
 输出：review-chXX.md（每章一份）
 ```
 
-1. 为每个 ch*.md 文件启动 **book-reviewer** agent（逐章结构检查）
-2. 检查：结构合规、代码引用准确性、术语一致性
+1. 为每个 ch*.md 文件启动 **book-chapter-reviewer** agent（逐章结构检查）
+2. **多个 reviewer 并行启动**
 3. 输出 `review-chXX.md` 到 `BOOK_DIR`
 
 #### 4b. 复审（跨章一致性）
@@ -105,9 +112,8 @@ mkdir -p "$BOOK_DIR"
 输出：review-consistency.md
 ```
 
-1. 使用 **book-reviewer** skill 的"复审"部分，检查跨章一致性
-2. 检查：术语不一致、内容重复、数据矛盾、设计决策矛盾、交叉引用错误
-3. 输出 `review-consistency.md`
+1. 启动 **book-consistency-reviewer** skill，检查跨章一致性
+2. 输出 `review-consistency.md`
 
 #### 4c. 判定
 
@@ -122,7 +128,7 @@ mkdir -p "$BOOK_DIR"
 输出：修改后的 ch*.md
 ```
 
-1. 对每个 FAIL 章节，向对应 Writer 发送返工指令（明确 FAIL 项 + 具体修复建议）
+1. 对每个 FAIL 章节，向对应 Writer 发送返工指令
 2. Writer 修改后，**重新跑 Phase 4a 的初审**
 3. 最多返工 2 轮，超过后向用户报告并请求决定
 
@@ -161,14 +167,13 @@ mkdir -p "$BOOK_DIR"
 ```
 
 1. 启动 **book-editor-in-chief** agent
-2. 按优先级修复：P0（格式/ASCII/结构）→ P1（去重/交叉引用/数据）→ P2（术语/过渡）
-3. 编写 4 个附录（A 文件导航、B 工具参考、C 设计决策汇总、D 术语表）
+2. 按优先级修复：P0 → P1 → P2
+3. 编写 4 个附录
 4. 编译终稿 `book-final.md`
-5. 向用户展示统稿结果（修复数量、终稿字数）
 
 ### Phase 9：交付
 
-1. 展示终稿统计：`wc -l`、`wc -c`、章节数
+1. 展示终稿统计
 2. 将终稿文件交付给用户
 3. 展示管线执行总结
 

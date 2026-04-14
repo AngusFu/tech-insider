@@ -47,9 +47,9 @@ claude --plugin-dir /path/to/source-code-book-plugin
 | 方式 | 触发 | 执行方式 | 适用场景 |
 |------|------|---------|---------|
 | `/source-code-book:start` | 命令 | 编排 subagent 并行执行 | 完整书籍生产 |
-| `source-code-book` skill | Skill 工具 | 编排 subagent 并行执行 | 同上，skill 入口 |
+| `book-pipeline` skill | Skill 工具 | 编排 subagent 并行执行 | 同上，skill 入口 |
 
-两者共享同一管线逻辑（`skills/source-code-book/SKILL.md`），命令只做参数解析后加载 skill。
+两者共享同一管线逻辑（`skills/book-pipeline/SKILL.md`），命令只做参数解析后加载 skill。
 
 ## 架构
 
@@ -59,18 +59,18 @@ source-code-book-plugin/
 │   └── plugin.json              # 插件清单
 ├── skills/
 │   ├── book-planner/            # 规划器：分析代码库、制定大纲、风格指南
-│   ├── book-writer/             # Writer 模板：章节写作规范
-│   ├── book-reviewer/           # 跨章一致性审查（复审）
+│   ├── book-writer-template/    # Writer 模板：章节写作规范
+│   ├── book-consistency-reviewer/ # 跨章一致性审查（复审）
 │   ├── book-proofreader/        # 三校校对：文字/交叉引用/可读性
-│   └── source-code-book/        # 管线 skill：完整编排（含并行 subagent）
+│   └── book-pipeline/           # 管线编排：完整流程 + 并行 subagent
 ├── agents/
-│   ├── book-planner.md            # 规划 Agent
-│   ├── book-writer-foundation.md  # Writer：基础篇（Ch01-03）
-│   ├── book-writer-core-loop.md   # Writer：核心篇 A（Ch04-05）
-│   ├── book-writer-core-system.md # Writer：核心篇 B（Ch06-07）
-│   ├── book-writer-tools.md       # Writer：工具篇（Ch08-10）
-│   ├── book-writer-integration.md # Writer：整合与工程篇（Ch11-16）
-│   ├── book-reviewer.md           # 逐章结构审查（初审）
+│   ├── book-planner.md            # 规划 Agent（通用，动态生成章节）
+│   ├── book-writer-foundation.md  # Writer：基础篇（前 2-3 章）
+│   ├── book-writer-core-loop.md   # Writer：核心循环篇
+│   ├── book-writer-core-system.md # Writer：核心系统篇
+│   ├── book-writer-tools.md       # Writer：工具/子系统篇
+│   ├── book-writer-integration.md # Writer：整合与工程篇
+│   ├── book-chapter-reviewer.md   # 逐章结构审查（初审）
 │   ├── book-verifier.md           # 自动化结构验证
 │   └── book-editor-in-chief.md    # 统稿主编
 ├── commands/
