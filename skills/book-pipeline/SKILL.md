@@ -129,7 +129,7 @@ mkdir -p "$BOOK_DIR"
 
 ### Phase 6：三审
 
-#### 6a. 初审（逐章）
+#### 6a. 初审（逐章结构检查）
 
 ```
 输入：所有章节 ch*.md + STYLE_GUIDE.md
@@ -140,40 +140,62 @@ mkdir -p "$BOOK_DIR"
 2. **多个 reviewer 并行启动**
 3. 输出 `review-chXX.md` 到 `BOOK_DIR`
 
-#### 6b. 复审（跨章一致性）
+#### 6b. 技术评审（事实核对，关键！）
 
 ```
-输入：所有 ch*.md + 所有 review-chXX.md + STYLE_GUIDE.md
+输入：所有章节 ch*.md + 源码库
+输出：tech-review-chXX.md（每章一份）
+```
+
+**这不是格式检查，这是事实检查。检查章节里说的代码逻辑是否真的和源码一致。**
+
+1. 为每个 ch*.md 文件启动 **book-technical-reviewer** agent
+2. **多个 technical reviewer 并行启动**
+3. 每个 reviewer 检查：
+   - **代码逻辑** — 章节声称的行为是否和实际代码一致
+   - **架构描述** — 描述的架构是否和实际代码结构一致
+   - **代码引用上下文** — file:line 指向的代码是否真的是章节描述的那个功能
+   - **数据准确性** — 性能数据、数字是否有依据
+   - **设计决策真实性** — 描述的"备选方案"和"权衡"是否真实存在
+4. 输出 `tech-review-chXX.md` 到 `BOOK_DIR`
+
+#### 6c. 复审（跨章一致性）
+
+```
+输入：所有 ch*.md + 所有 review-chXX.md + 所有 tech-review-chXX.md + STYLE_GUIDE.md
 输出：review-consistency.md
 ```
 
 1. 启动 **book-consistency-reviewer** skill，检查跨章一致性
-2. 输出 `review-consistency.md`
+2. 同时检查：不同章节对同一技术点的描述是否矛盾
+3. 输出 `review-consistency.md`
 
-#### 6c. 终审（整体质量）
+#### 6d. 终审（整体质量）
 
 ```
-输入：所有 review 报告 + 所有章节
+输入：所有 review 报告 + 所有 tech-review 报告 + 所有章节
 输出：终审结论（是否可发稿）
 ```
 
-1. 综合初审和复审结果，判断整体质量
+1. 综合初审、技术评审、复审结果，判断整体质量
 2. 输出终审结论：可发稿 / 需返工
 
 判定：
-- **需返工** → Phase 7
+- **需返工**（任何章节技术评审 FAIL）→ Phase 7
+- **需返工**（初审或复审 FAIL）→ Phase 7
 - **可发稿** → Phase 8（验证）
 
 ### Phase 7：返工
 
 ```
-输入：review 报告 + 原始章节文件
+输入：review 报告 + tech-review 报告 + 原始章节文件
 输出：修改后的 ch*.md
 ```
 
-1. 对每个 FAIL 章节，向对应 Writer 发送返工指令
-2. Writer 修改后，**重新跑 Phase 6a 的初审**
-3. 最多返工 2 轮，超过后向用户报告并请求决定
+1. 对每个 FAIL 章节，向对应 Writer 发送返工指令（包括结构问题 + 事实错误）
+2. **事实错误优先** — 技术评审的 Wrong 项必须先修正，因为可能影响后续章节的交叉引用
+3. Writer 修改后，**重新跑 Phase 6a 的初审 + Phase 6b 的技术评审**
+4. 最多返工 2 轮，超过后向用户报告并请求决定
 
 ### Phase 8：验证
 

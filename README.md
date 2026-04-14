@@ -7,7 +7,7 @@
 这个插件诞生于一次完整的出版实践：我们用 Claude Code 的 Agent Teams 模式，为 [Hermes Agent](https://github.com/NousResearch/hermes-agent)（50K+ stars, MIT）写了一本 6.7 万字、16 章、4 个附录的深度解析书籍。整个过程包含：
 
 - 5 个 Writer 并行撰写
-- 3 轮审稿（初审逐章 + 复审跨章一致性 + 终审整体质量）
+- 5 轮审稿（初审逐章结构 + 技术事实核对 + 复审跨章一致性 + 终审整体质量）
 - 2 轮校对（一校：文字+交叉引用 + 二校：可读性通读）
 - 1 个 Editor-in-Chief 统稿
 - 封面设计、序言撰写、附录编写
@@ -71,6 +71,7 @@ source-code-book-plugin/
 │   ├── book-writer-tools.md       # Writer：工具/子系统篇
 │   ├── book-writer-integration.md # Writer：整合与工程篇
 │   ├── book-chapter-reviewer.md   # 逐章结构审查（初审）
+│   ├── book-technical-reviewer.md # 技术事实核对（代码逻辑/架构/数据验证）
 │   ├── book-verifier.md           # 自动化结构验证
 │   └── book-editor-in-chief.md    # 统稿主编
 ├── commands/
@@ -93,7 +94,7 @@ flowchart TD
     S3["3. 大纲<br/>BOOK_PLAN + STYLE_GUIDE"]
     S4["4. 写前协调<br/>DEPENDENCIES.md<br/>章节边界 + 交叉引用约定"]
     S5["5. 初稿<br/>5 writers 并行"]
-    S6["6. 三审<br/>初审 + 复审 + 终审"]
+    S6["6. 三审<br/>初审(结构) + 技术评审(事实) + 复审(跨章) + 终审"]
     S7["7. 返工<br/>最多 2 轮"]
     S8["8. 验证<br/>自动化检查"]
     S9["9. 两校并行<br/>一校(文字+交叉引用)<br/>二校(可读性)"]
@@ -137,7 +138,8 @@ flowchart TD
 5. **内容重合必须提前处理** — 每个概念指定一个主章节，其他只做交叉引用
 6. **两校合并** — 文字校对和交叉引用合并为一校，可读性单独为二校，节省 token 预算
 7. **Appendix 必须在正文之后** — 统稿时容易拼错位置
-8. **进度必须及时反馈** — 不能让 main agent 干等所有 subagent 跑完才汇报
+9. **进度必须及时反馈** — 不能让 main agent 干等所有 subagent 跑完才汇报
+10. **技术事实核对是核心质量门** — 格式检查不能替代代码验证，章节里说的代码逻辑必须和实际源码一致
 
 ## 测试
 
