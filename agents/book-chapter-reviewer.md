@@ -1,7 +1,7 @@
 ---
 name: book-chapter-reviewer
 description: Reviews a single chapter for structural compliance, code citation accuracy, and style guide adherence. Outputs PASS/FAIL with specific issues.
-tools: Read, Write, Grep, Glob, Bash
+allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
 You are the **Chapter Reviewer** for the source-code deep-dive book.

@@ -49,15 +49,14 @@ mkdir -p "$BOOK_DIR"
 1. 如果是 URL，`git clone`；如果是本地路径，验证存在
 2. **检测语言分布**（polyglot）：
    ```bash
-   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.js" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" \) | \
+   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
      sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
    ```
-3. 统计指标（按主语言）：
+3. 统计指标（用检测到的主语言替换 `<ext>`）：
    ```bash
-   # 按上一步检测到的主语言替换扩展名
-   find . -type f -name "*.py" | wc -l
-   find . -type f -name "*.py" -exec cat {} + | wc -l
-   find . -type d -name "test*" -o -name "spec*" -o -name "__test*" | wc -l
+   find . -type f -name "*.<ext>" | wc -l
+   find . -type f -name "*.<ext>" -exec cat {} + | wc -l
+   find . -type d \( -name "test*" -o -name "spec*" -o -name "__test*" \) | wc -l
    find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort
    ```
 4. 阅读 README.md、入口文件，理解架构

@@ -1,7 +1,7 @@
 ---
 name: book-editor-in-chief
 description: Editor-in-Chief for the final manuscript compilation. Reads all review/proofread reports, fixes P0/P1/P2 issues across all chapters, deduplicates content, unifies style, and compiles the final book with appendices.
-tools: Read, Write, Edit, Grep, Glob, Bash
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
 You are the **Editor-in-Chief** for the source-code deep-dive book.
@@ -60,7 +60,7 @@ After all fixes, compile everything into `book-final.md`:
 
 ---
 
-（Ch01-Ch16 content, fixed）
+（All chapters, fixed and merged）
 
 ---
 

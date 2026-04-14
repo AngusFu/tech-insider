@@ -57,7 +57,7 @@ allowed-tools: Read, Write, Bash, Grep, Glob
 ## 写作规则
 
 ### 代码引用
-- 格式：`文件路径:行号范围`，如 `run_agent.py:526-600`
+- 格式：`文件路径:行号范围`，如 `src/core/engine.ts:142-156`
 - 代码块不超过 30 行，只保留关键部分
 - 必须从实际源码中引用，不是伪代码
 - 行号用 `grep -n` 校验
@@ -112,7 +112,7 @@ allowed-tools: Read, Write, Bash, Grep, Glob
 - 代码行数：使用 `wc -l` 的实际数据
 - 文件大小：使用 `ls -lh` 的实际数据
 - 文件数量：使用 `find` 的实际数据
-- 测试数量：使用 `pytest --collect-only` 的实际数据
+- 测试数量：使用项目测试框架的实际数据（pytest, jest, go test, cargo test 等）
 
 ## 输出
 

@@ -1,7 +1,7 @@
 ---
 name: book-writer-core-loop
 description: Writes core loop chapters: conversation engine, prompt engineering, context management. Receives chapter assignments from BOOK_PLAN.md at runtime.
-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent
 ---
 
 You are a **Writer** for the source-code deep-dive book.

@@ -14,7 +14,7 @@ allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 用户提供以下信息时启动：
 - 一个开源项目（GitHub 仓库或本地路径）
 - 写作意图（为什么写这本书、目标读者）
-- 重点关注领域（可选，如 agent loop、context engineering、memory 管理等）
+- 重点关注领域（可选）
 
 ## 执行步骤
 
@@ -24,21 +24,26 @@ allowed-tools: Read, Write, Bash, Grep, Glob, Agent
    ```bash
    git clone <repo-url>
    ```
-2. 统计关键指标：
+2. **检测主要语言**：
    ```bash
-   # Python 文件数和总行数
-   find . -name "*.py" | wc -l
-   find . -name "*.py" -exec cat {} + | wc -l
-   # 测试文件数
-   find tests -name "*.py" 2>/dev/null | wc -l
+   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
+     sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
+   ```
+3. 统计指标（按检测到的主语言替换扩展名）：
+   ```bash
+   # 示例：如果主语言是 .ts，则用 *.ts
+   find . -name "*.ts" | wc -l
+   find . -name "*.ts" -exec cat {} + | wc -l
+   # 测试目录
+   find . -type d \( -name "test*" -o -name "spec*" -o -name "__test*" \) | wc -l
    # 总文件大小
    du -sh .
    ```
-3. 分析代码架构：
+4. 分析代码架构：
    - 优先使用 `understand` skill 或 `Explore` agent 分析代码架构（如果可用）
    - 如果不可用，使用手动方式：
-     - `find . -type d -maxdepth 2 | sort` 查看目录结构
-     - 阅读 README.md、主要入口文件（如 main.py、cli.py、run.py）
+     - `find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort` 查看目录结构
+     - 阅读 README.md、主要入口文件（根据语言：main.py、index.ts、main.go、lib.rs 等）
      - 通过 import 语句分析模块依赖关系
      - 识别核心模块（最大文件、最多被引用的文件）
 
@@ -46,17 +51,17 @@ allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 
 创建 `BOOK_PLAN.md`，包含：
 - 书名和副标题
-- 分部分（Part）的章节大纲（16 章为宜）
+- 分部分（Part）的章节大纲（根据代码库复杂度动态决定 12-18 章）
 - 每章的简要内容描述
 - 重点关注章节的标注
 
-大纲结构参考：
+**大纲结构参考**（根据项目类型灵活调整）：
 ```
 Part 1：基础篇 — 项目是什么，为什么不一样
 Part 2：核心篇 — 核心架构深度分析
-Part 3：工具/扩展篇 — 系统的手脚
-Part 4：多平台/部署篇 — 生产环境
-Part 5：工程实践篇 — 并发、安全、训练等
+Part 3：子系统/扩展篇 — 系统的手脚
+Part 4：集成/部署篇 — 生产环境
+Part 5：工程实践篇 — 测试、安全、性能等
 附录 A-D
 ```
 
@@ -67,7 +72,7 @@ Part 5：工程实践篇 — 并发、安全、训练等
 2. **章节结构模板** — 开头隐喻 → Mermaid 图 → 技术深潜 → 设计决策框 → 停下来想一想 → 可迁移的设计原则
 3. **代码引用格式** — `文件路径:行号范围`
 4. **Mermaid 图规范** — 场景对应的图类型选择
-5. **设计决策框格式** — 决策/备选/权衡/Hermes 的理由
+5. **设计决策框格式** — 决策/备选/权衡/[项目名称] 的理由
 6. **禁止事项** — ASCII 图、过渡废话、教程内容等
 7. **内容重合处理原则** — 每个概念的主章节和交叉引用规则
 8. **定量数据引用** — 必须用实际数据
@@ -87,9 +92,9 @@ Part 5：工程实践篇 — 并发、安全、训练等
 
 根据大纲将章节分配给不同的写作 agent：
 - 基础篇 → book-writer-foundation
-- 核心篇 A（对话循环）→ book-writer-core-loop
-- 核心篇 B（模型调度与记忆）→ book-writer-core-system
-- 工具篇 → book-writer-tools
+- 核心篇 A → book-writer-core-loop
+- 核心篇 B → book-writer-core-system
+- 工具/子系统篇 → book-writer-tools
 - 整合与工程篇 → book-writer-integration
 
 每个 writer 收到：

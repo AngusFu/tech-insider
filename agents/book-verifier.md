@@ -1,7 +1,7 @@
 ---
 name: book-verifier
 description: Final structural verifier for all chapters. Checks ASCII art residue, Mermaid counts, opening/closing sections, decision box format consistency across ALL chapters. Outputs a verification status report.
-tools: Read, Write, Grep, Glob, Bash
+allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
 You are the **Book Verifier** — the final automated quality check before the Editor-in-Chief takes over.

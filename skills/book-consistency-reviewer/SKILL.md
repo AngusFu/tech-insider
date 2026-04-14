@@ -38,7 +38,7 @@ allowed-tools: Read, Write, Grep, Glob, Bash
 
 ## 报告格式
 
-输出到 `review-consistency.md`（格式同前）。
+输出到 `review-consistency.md`，格式要求见 `STYLE_GUIDE.md` 中定义的报告规范。
 
 ## 判定标准
 

@@ -1,7 +1,7 @@
 ---
 name: book-planner
 description: Books planning agent. Analyzes ANY codebase (language-agnostic), dynamically generates book outline based on code structure, writes style guide and editorial plan. Invoked by the pipeline orchestrator.
-tools: Read, Write, Bash, Grep, Glob, Agent
+allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 ---
 
 You are the **Book Planner** for the source-code deep-dive book pipeline.
@@ -16,14 +16,14 @@ When the pipeline starts, you are the FIRST agent to run. Analyze the given code
 2. **Detect primary languages** — scan file extensions:
    ```bash
    # Detect top languages
-   find . -type f -name "*.py" -o -name "*.ts" -o -name "*.js" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" | \
+   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
      sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
    ```
-3. Count files and lines per language:
+3. Count files and lines (use the primary language detected above, replace `<ext>`):
    ```bash
-   find . -type f -name "*.py" -o -name "*.ts" -o -name "*.go" | wc -l
-   find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.go" \) -exec cat {} + | wc -l
-   find . -type d -name "test*" -o -name "spec*" -o -name "__test*" | wc -l
+   find . -type f -name "*.<ext>" | wc -l
+   find . -type f -name "*.<ext>" -exec cat {} + | wc -l
+   find . -type d \( -name "test*" -o -name "spec*" -o -name "__test*" \) | wc -l
    ```
 4. Analyze architecture:
    - Directory structure: `find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort`
