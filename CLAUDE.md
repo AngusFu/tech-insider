@@ -1,0 +1,122 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**tech-insider** is a Claude Code plugin that automates publication-grade deep source-code analysis books. From cloning a repo to delivering a 60K+ word technical manuscript — 5 parallel writers, 3 review rounds, 3 proofreading passes, Editor-in-Chief synthesis, fully automated.
+
+Born from a real publishing project for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT, 67K-word, 16-chapter book).
+
+## Quick Start
+
+```bash
+# Local testing
+claude --plugin-dir /Users/yywl/coding/tech-insider
+
+# Via marketplace (if installed)
+/plugin install tech-insider@tech-insider-marketplace
+
+# Run the pipeline
+/tech-insider:make-book https://github.com/NousResearch/hermes-agent --title "My Book Title"
+```
+
+## Directory Structure
+
+```
+tech-insider/
+├── .claude-plugin/
+│   ├── plugin.json              # Plugin manifest (name, skills, commands)
+│   └── marketplace.json         # Marketplace registration
+├── skills/
+│   ├── book-pipeline/SKILL.md   # Pipeline orchestration — full flow, parallel subagents
+│   ├── book-planner/SKILL.md    # Planner: analyze codebase, draft outline, style guide
+│   ├── book-writer-template/SKILL.md  # Writer template: chapter structure, writing rules
+│   ├── book_consistency-reviewer/SKILL.md  # Cross-chapter consistency review
+│   └── book-proofreader/SKILL.md # Three-pass proofreading (first/second/readability modes)
+├── agents/
+│   ├── book-planner.md           # Planner Agent (dynamic chapter generation)
+│   ├── book-writer-foundation.md # Writer: Foundation chapters (1-3)
+│   ├── book-writer-core-loop.md  # Writer: Core Loop chapters
+│   ├── book-writer-core-system.md# Writer: Core System chapters
+│   ├── book-writer-tools.md      # Writer: Tools / Subsystem chapters
+│   ├── book-writer-integration.md# Writer: Integration & Engineering chapters
+│   ├── book-chapter-reviewer.md  # Structure review (initial review)
+│   ├── book-technical-reviewer.md# Technical fact-checking against source code
+│   ├── book-verifier.md          # Automated structure + Mermaid verification
+│   ├── book-editor-in-chief.md   # Editor-in-Chief: P0/P1/P2 fixes + final compilation
+│   └── book-preface-writer.md    # Preface writing
+├── commands/
+│   └── make-book.md              # /tech-insider:make-book launch command
+└── docs/
+    └── workflow-experience.md    # Workflow experience summary from Hermes project
+```
+
+## Plugin Architecture
+
+- **Skills** define behaviors (`skills/<name>/SKILL.md` with YAML frontmatter: `name`, `description`, `user-invocable`)
+- **Agents** are specialized workers (`agents/<name>.md` with YAML frontmatter: `name`, `description`, `allowed-tools`)
+- **Commands** are slash commands (`commands/<name>.md` with YAML frontmatter: `name`, `description`, `argument-hint`)
+- Plugin manifest is `.claude-plugin/plugin.json` — must include `skills` and `commands` arrays
+
+## Pipeline Flow (11 Phases)
+
+```
+Phase 1: Clone + Analyze          → metrics, language distribution
+Phase 2: Topic Selection           → TOPIC.md (worth writing?)
+Phase 3: Outline                   → BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
+Phase 4: Pre-Writing Coordination  → DEPENDENCIES.md (chapter boundaries)
+Phase 4.5: Code Index              → CODE_INDEX.md (pre-computed code summary, cuts tokens 50%+)
+Phase 5: First Draft (staged)      → foundation writer first, then 4 parallel
+Phase 6: Three Reviews             → initial + technical + cross-chapter + final verdict
+Phase 7: Rework                    → max 2 rounds
+Phase 8: Verification              → automated checks + Mermaid validation
+Phase 9: Proofreads + Preface      → 3 proofreads (parallel) + preface writing
+Phase 9.5: Preface Review          → accuracy/tone/scope check
+Phase 10: Synthesis (3 passes)     → P0 fixes → P1 fixes → P2 + compilation → book-final.md
+Phase 11: Delivery                 → stats + files
+```
+
+### Artifact Convention
+
+All intermediate files go in `.work/` directory:
+- `review-chXX.md` — initial review reports
+- `tech-review-chXX.md` — technical review reports
+- `review-consistency.md` — cross-chapter consistency
+- `verification-status.md` — automated check results
+- `proofread-1/2/3.md` — three proofreading reports
+- `preface-review.md` — preface review
+- `final-review-verdict.md` — go/no-go decision
+
+## Pitfalls & Lessons Learned
+
+### Multi-Skill Mode Selection
+**Problem**: `book-proofreader` had all three proofreading passes in one SKILL.md with no mode selection — all three would run every time, overwriting each other's output.
+**Fix**: Added explicit invocation mode table (`first-proofread` / `second-proofread` / `readability-pass`) at the top of the skill. Pipeline must pass mode context when invoking.
+
+### Agent `.work/` Paths Are Contracts, Not Hacks
+Paths like `.work/proofread-1.md` look "hardcoded" but they are **inter-agent contracts** — all agents (proofreader, editor-in-chief, pipeline) agree on these canonical locations. Don't try to make them dynamic; fix the invocation logic instead.
+
+### Plugin Manifest Must Declare Everything
+`plugin.json` must include `skills` and `commands` arrays listing all skill/command names. Without them, skills are invisible to Claude Code even if the files exist.
+
+### No Duplicate Instructions
+`commands/make-book.md` should only parse parameters and delegate to `skills/book-pipeline/SKILL.md`. Don't duplicate pipeline logic in the command file.
+
+### Main Agent Does Not Write
+The pipeline orchestrator (main agent) only coordinates, delegates, and reports. All writing, reviewing, and proofreading is delegated to subagents. If main starts writing chapters, context window explodes.
+
+### Staged Writer Launch
+Foundation writer goes first (sets tone). After style checkpoint, remaining 4 writers launch in parallel with Batch 1 output as reference.
+
+### Mermaid Is the Only Diagram Choice
+No ASCII art allowed. All architecture diagrams must be Mermaid. Verified by `book-verifier` using `mmdc -i file.mmd -o /dev/null`.
+
+### CODE_INDEX.md Cuts Token Cost 50%+
+Writers and reviewers query the pre-computed index instead of reading raw source. Drill into source only for specific citations.
+
+### Chunked Synthesis
+Phase 10 processes in 3 separate passes (P0 → P1 → P2) to avoid context-window saturation. Each pass launches a fresh Editor-in-Chief agent.
+
+### Proofreading Must Be Parallel
+All 3 proofreading passes + preface writing have no inter-dependencies — launch simultaneously, not sequentially.

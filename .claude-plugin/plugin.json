@@ -6,10 +6,7 @@
     "name": "机器毛"
   },
   "homepage": "https://github.com/example/tech-insider",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/example/tech-insider"
-  },
+  "repository": "https://github.com/example/tech-insider",
   "license": "MIT",
   "icon": "🔍",
   "keywords": [
@@ -20,15 +17,5 @@
     "agent-teams",
     "publishing",
     "documentation"
-  ],
-  "skills": [
-    "book-pipeline",
-    "book-planner",
-    "book-writer-template",
-    "book-consistency-reviewer",
-    "book-proofreader"
-  ],
-  "commands": [
-    "make-book"
   ]
 }

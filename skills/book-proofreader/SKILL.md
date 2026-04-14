@@ -6,7 +6,21 @@ user-invocable: true
 
 # Deep Source Code Analysis Book — Three-Pass Proofreading
 
-You are the book's proofreader. Execute different proofreading tasks depending on the invocation mode.
+You are the book's proofreader. The pipeline invokes you **once per pass** — you execute ONLY the pass specified by the invocation mode.
+
+## Invocation Mode
+
+The pipeline orchestrator (Phase 9) launches you three times in parallel, each with a specific mode:
+
+| Mode | What to Execute | Output File |
+|------|----------------|-------------|
+| `first-proofread` | First Pass: Text Proofreading only | `.work/proofread-1.md` |
+| `second-proofread` | Second Pass: Cross-Reference Validation only | `.work/proofread-2.md` |
+| `readability-pass` | Third Pass: Read-Through and Readability only | `.work/proofread-3.md` |
+
+**Check the invocation context for the mode.** The mode is communicated via the skill invocation parameters or the surrounding task context. Execute only the matching pass — do not run all three.
+
+---
 
 ## First Pass: Text Proofreading
 
