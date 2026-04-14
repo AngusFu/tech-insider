@@ -1,0 +1,24 @@
+{
+  "name": "source-code-book",
+  "description": "源码深度解析技术书籍生成器 — 基于 Agent Teams 的出版级书籍管线，支持从克隆代码到终稿的全流程自动化",
+  "version": "1.0.0",
+  "author": {
+    "name": "机器毛"
+  },
+  "homepage": "https://github.com/example/source-code-book-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/source-code-book-plugin"
+  },
+  "license": "MIT",
+  "icon": "📚",
+  "keywords": [
+    "book",
+    "writing",
+    "source-code",
+    "technical-book",
+    "agent-teams",
+    "publishing",
+    "documentation"
+  ]
+}
