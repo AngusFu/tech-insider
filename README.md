@@ -7,7 +7,7 @@
 这个插件诞生于一次完整的出版实践：我们用 Claude Code 的 Agent Teams 模式，为 [Hermes Agent](https://github.com/NousResearch/hermes-agent)（50K+ stars, MIT）写了一本 6.7 万字、16 章、4 个附录的深度解析书籍。整个过程包含：
 
 - 5 个 Writer 并行撰写
-- 3 轮审稿（初审 + 复审一致性 + 跨章检查）
+- 3 轮审稿（初审逐章 + 复审跨章一致性 + 终审整体质量）
 - 3 轮校对（文字 + 交叉引用 + 可读性通读）
 - 1 个 Editor-in-Chief 统稿
 - 封面设计、序言撰写、附录编写
@@ -88,22 +88,23 @@ source-code-book-plugin/
 
 ```mermaid
 flowchart TD
-    S1["1. 克隆 + 分析"]
-    S2["2. 规划<br/>BOOK_PLAN.md, STYLE_GUIDE.md, EDITORIAL_PLAN.md"]
-    S3["3. 初稿<br/>5 writers 并行"]
-    S4["4. 三审<br/>初审: 逐章<br/>复审: 跨章一致性"]
-    S5["5. 返工<br/>最多 2 轮"]
-    S6["6. 验证<br/>book-verifier 结构检查"]
-    S7["7. 三校并行<br/>一校/二校/三校/封面/序言"]
-    S8["8. 统稿<br/>book-editor-in-chief"]
-    S9["9. 交付<br/>book-final.md"]
+    S1["1. 克隆 + 分析<br/>语言分布 / 文件数 / 架构"]
+    S2["2. 选题<br/>值不值得写、写给谁、角度是什么"]
+    S3["3. 大纲<br/>BOOK_PLAN.md / STYLE_GUIDE.md / EDITORIAL_PLAN.md"]
+    S4["4. 初稿<br/>5 writers 并行"]
+    S5["5. 三审<br/>初审: 逐章 / 复审: 跨章 / 终审: 整体质量"]
+    S6["6. 返工<br/>最多 2 轮"]
+    S7["7. 验证<br/>book-verifier 自动化检查"]
+    S8["8. 三校并行<br/>一校/二校/三校/封面/序言"]
+    S9["9. 统稿<br/>book-editor-in-chief"]
+    S10["10. 交付<br/>book-final.md"]
 
-    S1 --> S2 --> S3 --> S4
-    S4 -->|FAIL| S5
-    S4 -->|PASS| S6
-    S5 -->|重新初审| S4
-    S5 -->|超过 2 轮| S4
-    S6 --> S7 --> S8 --> S9
+    S1 --> S2 --> S3 --> S4 --> S5
+    S5 -->|需返工| S6
+    S5 -->|可发稿| S7
+    S6 -->|重新初审| S5
+    S6 -->|超过 2 轮| S5
+    S7 --> S8 --> S9 --> S10
 ```
 
 ## 章节结构模板
