@@ -34,7 +34,13 @@ allowed-tools: Read, Write, Bash, Grep, Glob, Agent
    # 总文件大小
    du -sh .
    ```
-3. 使用 `understand` skill 或项目扫描 agent 分析代码架构
+3. 分析代码架构：
+   - 优先使用 `understand` skill 或 `Explore` agent 分析代码架构（如果可用）
+   - 如果不可用，使用手动方式：
+     - `find . -type d -maxdepth 2 | sort` 查看目录结构
+     - 阅读 README.md、主要入口文件（如 main.py、cli.py、run.py）
+     - 通过 import 语句分析模块依赖关系
+     - 识别核心模块（最大文件、最多被引用的文件）
 
 ### Step 2：制定书籍大纲
 

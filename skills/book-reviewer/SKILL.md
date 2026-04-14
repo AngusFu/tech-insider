@@ -2,7 +2,7 @@
 name: book-reviewer
 description: 源码深度解析书籍的 Reviewer。当 Writer 完成章节后使用，负责逐章检查格式规范、源码准确性、设计决策分析，以及跨章一致性检查。
 user-invocable: true
-allowed-tools: Read, Write, Grep, Glob, Bash, Agent
+allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
 # 源码深度解析书籍 — 审稿人
