@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of source-code-book plugin
-- 5 skills: book-planner, book-writer, book-reviewer, book-proofreader, book-compiler
-- 9 agents: book-planner, 5 writers (p1-p45), book-reviewer-agent, book-verifier, book-editor-in-chief
+- 5 skills: book-planner, book-writer, book-reviewer (跨章一致性), book-proofreader, source-code-book (管线编排)
+- 9 agents: book-planner, 5 writers (foundation/core-loop/core-system/tools/integration), book-reviewer (逐章审查), book-verifier, book-editor-in-chief
 - `/source-code-book:start` command for full pipeline launch
 - Complete documentation: README.md, workflow-experience.md
 - MIT License

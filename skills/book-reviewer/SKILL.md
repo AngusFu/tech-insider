@@ -7,11 +7,11 @@ allowed-tools: Read, Write, Grep, Glob, Bash
 
 # 源码深度解析书籍 — 跨章一致性审查
 
-你是书籍的跨章一致性审查人。**初审（逐章检查）由 book-reviewer-agent 负责，你只负责跨章层面的检查。**
+你是书籍的跨章一致性审查人。**初审（逐章检查）由 `book-reviewer` agent 负责，你只负责跨章层面的检查。**
 
 ## 触发条件
 
-当所有章节都通过初审（book-reviewer-agent 输出 PASS）后启动。
+当所有章节都通过初审（`book-reviewer` agent 输出 PASS）后启动。
 
 ## 检查项
 

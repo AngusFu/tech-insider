@@ -76,11 +76,11 @@ mkdir -p "$BOOK_DIR"
 ```
 
 1. 按章节分配给 Writer：
-   - **book-writer-p1** → Ch01-03（基础篇）
-   - **book-writer-p2a** → Ch04-05（核心篇 A）
-   - **book-writer-p2b** → Ch06-07（核心篇 B）
-   - **book-writer-p3** → Ch08-10（工具篇）
-   - **book-writer-p45** → Ch11-16（多平台 + 工程篇）
+   - **book-writer-foundation** → Ch01-03（基础篇）
+   - **book-writer-core-loop** → Ch04-05（核心篇 A — 对话循环）
+   - **book-writer-core-system** → Ch06-07（核心篇 B — 模型调度与记忆）
+   - **book-writer-tools** → Ch08-10（工具篇）
+   - **book-writer-integration** → Ch11-16（整合与工程篇）
 2. 每个 Writer 收到：其负责的章节描述、`STYLE_GUIDE.md`、`BOOK_PLAN.md`、代码库路径
 3. **5 个 Writer 并行启动**
 4. 完成后收集结果，向用户展示进度（N/5 完成）
@@ -94,7 +94,7 @@ mkdir -p "$BOOK_DIR"
 输出：review-chXX.md（每章一份）
 ```
 
-1. 为每个 ch*.md 文件启动 **book-reviewer-agent**
+1. 为每个 ch*.md 文件启动 **book-reviewer** agent（逐章结构检查）
 2. 检查：结构合规、代码引用准确性、术语一致性
 3. 输出 `review-chXX.md` 到 `BOOK_DIR`
 

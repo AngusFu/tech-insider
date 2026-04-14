@@ -64,15 +64,15 @@ source-code-book-plugin/
 │   ├── book-proofreader/        # 三校校对：文字/交叉引用/可读性
 │   └── source-code-book/        # 管线 skill：完整编排（含并行 subagent）
 ├── agents/
-│   ├── book-planner.md          # 规划 Agent
-│   ├── book-writer-p1.md        # Writer Part 1（Ch01-03）
-│   ├── book-writer-p2a.md       # Writer Part 2A（Ch04-05）
-│   ├── book-writer-p2b.md       # Writer Part 2B（Ch06-07）
-│   ├── book-writer-p3.md        # Writer Part 3（Ch08-10）
-│   ├── book-writer-p45.md       # Writer Part 4-5（Ch11-16）
-│   ├── book-reviewer-agent.md   # 自动审稿人
-│   ├── book-verifier.md         # 结构验证器
-│   └── book-editor-in-chief.md  # 统稿主编
+│   ├── book-planner.md            # 规划 Agent
+│   ├── book-writer-foundation.md  # Writer：基础篇（Ch01-03）
+│   ├── book-writer-core-loop.md   # Writer：核心篇 A（Ch04-05）
+│   ├── book-writer-core-system.md # Writer：核心篇 B（Ch06-07）
+│   ├── book-writer-tools.md       # Writer：工具篇（Ch08-10）
+│   ├── book-writer-integration.md # Writer：整合与工程篇（Ch11-16）
+│   ├── book-reviewer.md           # 逐章结构审查（初审）
+│   ├── book-verifier.md           # 自动化结构验证
+│   └── book-editor-in-chief.md    # 统稿主编
 ├── commands/
 │   └── start.md                 # /source-code-book:start 启动命令
 ├── docs/

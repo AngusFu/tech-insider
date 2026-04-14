@@ -86,11 +86,11 @@ Part 5：工程实践篇 — 并发、安全、训练等
 ### Step 5：启动写作 Agent Teams
 
 根据大纲将章节分配给不同的写作 agent：
-- Part 1（基础篇）→ writer-p1
-- Part 2 核心篇 A → writer-p2a
-- Part 2 核心篇 B → writer-p2b
-- Part 3（工具篇）→ writer-p3
-- Part 4-5（多平台+工程）→ writer-p45
+- 基础篇 → book-writer-foundation
+- 核心篇 A（对话循环）→ book-writer-core-loop
+- 核心篇 B（模型调度与记忆）→ book-writer-core-system
+- 工具篇 → book-writer-tools
+- 整合与工程篇 → book-writer-integration
 
 每个 writer 收到：
 - 其负责的章节列表
