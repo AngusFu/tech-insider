@@ -74,7 +74,7 @@ mkdir -p "$BOOK_DIR"
    - **写作角度** — 从哪个角度切入（架构分析 vs 使用指南 vs 源码解读）
    - **书名建议** — 3-5 个备选书名 + 副标题
    - **章节数建议** — 12-18 章（根据代码库复杂度）
-   - **不适合写的部分** — 哪些内容不适合深度解析（文档、教程、API 列表等）
+   - **不适合写的部分** — 哪些内容不适合深度解析
 2. 向用户展示选题报告
 3. 用户确认或修改后，进入大纲
 
@@ -85,20 +85,34 @@ mkdir -p "$BOOK_DIR"
 输出：BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 ```
 
-1. 启动 **book-planner** agent，传入：
-   - 代码库路径
-   - 已确认的选题（TOPIC.md）
-   - `BOOK_DIR`
+1. 启动 **book-planner** agent，传入代码库路径、已确认的选题（TOPIC.md）、`BOOK_DIR`
 2. 生成：
-   - `BOOK_PLAN.md` — 详细章节大纲（Part/Chapter 级），每章描述、关键源文件、设计决策
-   - `STYLE_GUIDE.md` — 写作风格指南（术语表、章节结构模板、代码引用格式、Mermaid 规范）
-   - `EDITORIAL_PLAN.md` — 编辑管线计划（三审三校分工、封面/序言要求、附录计划）
-3. 向用户展示大纲摘要（章节数、Part 分布），确认后进入初稿
+   - `BOOK_PLAN.md` — 详细章节大纲
+   - `STYLE_GUIDE.md` — 写作风格指南
+   - `EDITORIAL_PLAN.md` — 编辑管线计划
+3. 向用户展示大纲摘要，确认后进入协调
 
-### Phase 4：初稿撰写（5 Writer 并行）
+### Phase 4：写前协调（关键！防止文风分裂）
 
 ```
 输入：BOOK_PLAN.md + STYLE_GUIDE.md
+输出：DEPENDENCIES.md（章节依赖图 + 交叉引用约定）
+```
+
+**5 个 Writer 并行写之前，先让他们互相知道边界在哪里。**
+
+1. 生成章节依赖图 `DEPENDENCIES.md`：
+   - 每个概念的"主章节"归属（谁深度分析）
+   - 其他章节的交叉引用约定（"详见第X章"的具体措辞）
+   - Writer 之间的内容边界（谁覆盖什么、不覆盖什么）
+   - 相邻章节的过渡建议（前一章结尾自然引导到下一章开头）
+2. 将 `DEPENDENCIES.md` 发送给每个 Writer 作为写作前的参考
+3. 确认所有 Writer 已知晓边界后，进入初稿
+
+### Phase 5：初稿撰写（5 Writer 并行）
+
+```
+输入：BOOK_PLAN.md + STYLE_GUIDE.md + DEPENDENCIES.md
 输出：各章 chXX-*.md 文件
 ```
 
@@ -108,14 +122,14 @@ mkdir -p "$BOOK_DIR"
    - **book-writer-core-system** → 核心系统篇
    - **book-writer-tools** → 工具/子系统篇
    - **book-writer-integration** → 整合与工程篇
-   > 每个 Writer 从 `BOOK_PLAN.md` 读取自己被分配的具体章节，不是写死在 agent 文件里
-2. 每个 Writer 收到：`STYLE_GUIDE.md`、`BOOK_PLAN.md`、代码库路径
+   > 每个 Writer 从 `BOOK_PLAN.md` 读取自己被分配的具体章节，从 `DEPENDENCIES.md` 了解边界和交叉引用约定
+2. 每个 Writer 收到：`STYLE_GUIDE.md`、`BOOK_PLAN.md`、`DEPENDENCIES.md`、代码库路径
 3. **5 个 Writer 并行启动**
 4. 完成后收集结果，向用户展示进度
 
-### Phase 5：三审
+### Phase 6：三审
 
-#### 5a. 初审（逐章）
+#### 6a. 初审（逐章）
 
 ```
 输入：所有章节 ch*.md + STYLE_GUIDE.md
@@ -126,7 +140,7 @@ mkdir -p "$BOOK_DIR"
 2. **多个 reviewer 并行启动**
 3. 输出 `review-chXX.md` 到 `BOOK_DIR`
 
-#### 5b. 复审（跨章一致性）
+#### 6b. 复审（跨章一致性）
 
 ```
 输入：所有 ch*.md + 所有 review-chXX.md + STYLE_GUIDE.md
@@ -136,7 +150,7 @@ mkdir -p "$BOOK_DIR"
 1. 启动 **book-consistency-reviewer** skill，检查跨章一致性
 2. 输出 `review-consistency.md`
 
-#### 5c. 终审（整体质量）
+#### 6c. 终审（整体质量）
 
 ```
 输入：所有 review 报告 + 所有章节
@@ -147,10 +161,10 @@ mkdir -p "$BOOK_DIR"
 2. 输出终审结论：可发稿 / 需返工
 
 判定：
-- **需返工** → Phase 6
-- **可发稿** → Phase 7（验证）
+- **需返工** → Phase 7
+- **可发稿** → Phase 8（验证）
 
-### Phase 6：返工
+### Phase 7：返工
 
 ```
 输入：review 报告 + 原始章节文件
@@ -158,10 +172,10 @@ mkdir -p "$BOOK_DIR"
 ```
 
 1. 对每个 FAIL 章节，向对应 Writer 发送返工指令
-2. Writer 修改后，**重新跑 Phase 5a 的初审**
+2. Writer 修改后，**重新跑 Phase 6a 的初审**
 3. 最多返工 2 轮，超过后向用户报告并请求决定
 
-### Phase 7：验证
+### Phase 8：验证
 
 ```
 输入：所有章节 ch*.md
@@ -170,38 +184,40 @@ mkdir -p "$BOOK_DIR"
 
 1. 启动 **book-verifier** agent，运行自动化结构检查
 2. 输出 `verification-status.md`
-3. 展示验证结果表格。如有 FAIL，列出问题，用户确认后进入三校
+3. 展示验证结果表格。如有 FAIL，列出问题，用户确认后进入校对
 
-### Phase 8：三校（并行启动）
+### Phase 9：校对（两校并行）
 
 ```
 输入：所有章节 ch*.md + STYLE_GUIDE.md
-输出：proofread-1.md + proofread-2.md + proofread-3.md + 封面 + 序言
+输出：proofread-1.md + proofread-2.md + 封面 + 序言
 ```
 
+**两校制**：文字+交叉引用合并为一校，可读性单独为二校。
+
 同时启动（互不依赖）：
-- **一校**（文字校对）→ 使用 **book-proofreader** skill 的一校模式 → `proofread-1.md`
-- **二校**（交叉引用）→ 使用 **book-proofreader** skill 的二校模式 → `proofread-2.md`
-- **三校**（可读性）→ 使用 **book-proofreader** skill 的三校模式 → `proofread-3.md`
+- **一校**（文字 + 交叉引用）→ 使用 **book-proofreader** skill 的一校 + 二校合并模式 → `proofread-1.md`
+- **二校**（可读性 + 叙事连贯 + 语气统一）→ 使用 **book-proofreader** skill 的三校模式 → `proofread-2.md`
 - **封面设计** → 生成封面要求文档
 - **序言撰写** → 生成序言初稿
 
 全部完成后向用户报告。
 
-### Phase 9：统稿
+### Phase 10：统稿（分 chunk 处理）
 
 ```
-输入：所有 ch*.md + 三审报告 + 三校报告 + STYLE_GUIDE.md
+输入：所有 ch*.md + 三审报告 + 校对报告 + STYLE_GUIDE.md
 输出：修复后的章节 + book-final.md
 ```
 
-1. 启动 **book-editor-in-chief** agent
-2. 按优先级修复：P0 → P1 → P2
-3. 编写 4 个附录（A 文件导航、B 工具参考、C 设计决策汇总、D 术语表）
-4. 编译终稿 `book-final.md`
-5. 向用户展示统稿结果（修复数量、终稿字数）
+**为避免上下文窗口饱和，分三步处理：**
 
-### Phase 10：交付
+1. **第一轮：P0 修复** — 启动 **book-editor-in-chief** agent 处理所有 P0 问题（决策框格式统一、ASCII 图替换、缺失结构补齐），输出修复后的章节
+2. **第二轮：P1 修复** — 启动新的 **book-editor-in-chief** agent 处理所有 P1 问题（内容去重、交叉引用修正、数据一致性），输出修复后的章节
+3. **第三轮：P2 + 终稿编译** — 启动新的 **book-editor-in-chief** agent 处理 P2 问题（术语统一、难度缓冲、叙事过渡），编写 4 个附录，编译终稿 `book-final.md`
+4. 向用户展示统稿结果（修复数量、终稿字数）
+
+### Phase 11：交付
 
 1. 展示终稿统计（`wc -l`、`wc -c`、章节数）
 2. 将终稿文件交付给用户

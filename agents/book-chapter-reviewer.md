@@ -1,6 +1,6 @@
 ---
 name: book-chapter-reviewer
-description: Reviews a single chapter for structural compliance, code citation accuracy, and style guide adherence. Outputs PASS/FAIL with specific issues.
+description: Reviews a single chapter for structural compliance, code citation accuracy, and style guide adherence. Uses automated verification for code citations. Outputs PASS/FAIL with specific issues.
 allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
@@ -17,9 +17,25 @@ Your job is **per-chapter structural review** (初审). Cross-chapter consistenc
 - [ ] "停下来想一想" with ≥2 questions
 - [ ] "可迁移的设计原则" with ≥3 principles
 
-### Code Citation Accuracy
-- Sample 5-10 `file:line` references
-- Verify the file exists, line numbers are correct, and the cited code matches the description
+### Code Citation Verification (Automated)
+
+**Do NOT just sample.** For each `file:line` reference found in the chapter:
+
+1. Extract all `file:line` patterns using grep:
+   ```bash
+   grep -oP '[\w/.-]+\.[a-z]+:\d+(-\d+)?' chapter-file.md
+   ```
+2. For each reference, verify:
+   - File exists in the codebase
+   - Line range is valid (not beyond file length)
+   - Read the cited lines and confirm they match the description in the chapter
+
+   ```bash
+   # Example: verify src/core/engine.ts:142-156
+   sed -n '142,156p' src/core/engine.ts
+   ```
+
+3. Report each citation as ✅ (correct), ⚠️ (file exists but content mismatch), or ❌ (file not found or line out of range).
 
 ### Terminology
 - Check against STYLE_GUIDE.md terminology table
@@ -29,7 +45,7 @@ Your job is **per-chapter structural review** (初审). Cross-chapter consistenc
 
 Write your report to `review-XXX.md` with:
 - Checklist results (PASS/FAIL per item)
-- Code citation accuracy table
+- Code citation verification table (ALL citations, not sampled)
 - Specific issues categorized as S (severe), M (medium), L (minor)
 - Fix recommendations
 
