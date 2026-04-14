@@ -1,4 +1,4 @@
-# Source Code Book — Deep Source Code Analysis Book Generator
+# Tech Insider — Deep Source Code Analysis Book Generator
 
 An automated, publication-grade technical book pipeline powered by Agent Teams. From cloning a repository to delivering a finished manuscript — fully automated end-to-end.
 
@@ -20,13 +20,13 @@ This plugin packages that entire workflow into a reusable Claude Code plugin.
 
 ```bash
 # Add marketplace (if using a Git repository)
-/plugin marketplace add https://github.com/example/source-code-book-plugin.git
+/plugin marketplace add https://github.com/example/tech-insider.git
 
 # Install the plugin
-/plugin install source-code-book@source-code-book-marketplace
+/plugin install tech-insider@tech-insider-marketplace
 
 # Run in Claude Code
-/source-code-book:make-book https://github.com/NousResearch/hermes-agent \
+/tech-insider:make-book https://github.com/NousResearch/hermes-agent \
   --title "Hermes Agent Deep Analysis" \
   --subtitle "Understanding Self-Evolving AI Agent Architecture from Source Code"
 ```
@@ -34,10 +34,10 @@ This plugin packages that entire workflow into a reusable Claude Code plugin.
 ### Option 2: Local Development Mode
 
 ```bash
-claude --plugin-dir /path/to/source-code-book-plugin
+claude --plugin-dir /path/to/tech-insider
 
 # Then run in Claude Code:
-/source-code-book:make-book https://github.com/NousResearch/hermes-agent \
+/tech-insider:make-book https://github.com/NousResearch/hermes-agent \
   --title "Hermes Agent Deep Analysis" \
   --subtitle "Understanding Self-Evolving AI Agent Architecture from Source Code"
 ```
@@ -46,7 +46,7 @@ claude --plugin-dir /path/to/source-code-book-plugin
 
 | Method | Trigger | Execution | Use Case |
 |--------|---------|-----------|----------|
-| `/source-code-book:make-book` | Command | Orchestrates subagents for parallel execution | Full book production |
+| `/tech-insider:make-book` | Command | Orchestrates subagents for parallel execution | Full book production |
 | `book-pipeline` skill | Skill tool | Orchestrates subagents for parallel execution | Same as above, skill entry point |
 
 Both share the same pipeline logic (`skills/book-pipeline/SKILL.md`). The command only handles parameter parsing before loading the skill.
@@ -54,7 +54,7 @@ Both share the same pipeline logic (`skills/book-pipeline/SKILL.md`). The comman
 ## Architecture
 
 ```
-source-code-book-plugin/
+tech-insider/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin manifest
 ├── skills/
@@ -76,7 +76,7 @@ source-code-book-plugin/
 │   ├── book-editor-in-chief.md    # Editor-in-Chief for consolidation
 │   └── book-preface-writer.md     # Preface writing (Phase 9)
 ├── commands/
-│   └── make-book.md               # /source-code-book:make-book launch command
+│   └── make-book.md               # /tech-insider:make-book launch command
 ├── docs/
 │   └── workflow-experience.md   # Workflow experience summary
 ├── CHANGELOG.md
@@ -168,7 +168,7 @@ Here is what we learned from actual production, now built into the plugin:
 
 ```bash
 # Test the plugin locally
-claude --plugin-dir /path/to/source-code-book-plugin
+claude --plugin-dir /path/to/tech-insider
 
 # Verify plugin structure
 ls -la .claude-plugin/plugin.json

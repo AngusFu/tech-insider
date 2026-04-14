@@ -1,17 +1,17 @@
 {
-  "name": "source-code-book-marketplace",
+  "name": "tech-insider-marketplace",
   "owner": {
     "name": "机器毛"
   },
   "metadata": {
-    "description": "源码深度解析技术书籍生成器 — 基于 Agent Teams 的出版级书籍管线",
+    "description": "Automated publication-grade deep source-code analysis book generator powered by Agent Teams",
     "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "source-code-book",
+      "name": "tech-insider",
       "source": "./",
-      "description": "源码深度解析技术书籍生成器 — 从克隆一份开源代码到输出终稿，全流程自动化。5 个 Writer 并行撰写、3 轮审稿、3 轮校对、统稿主编，最终输出 6-7 万字的技术书籍。",
+      "description": "Deep source-code analysis book generator — from cloning a repo to delivering a finished manuscript, fully automated. 5 parallel writers, 3 review rounds, 3 proofreading passes, Editor-in-Chief synthesis, producing 60K+ word technical books.",
       "version": "1.0.0",
       "author": {
         "name": "机器毛"

@@ -1,6 +1,6 @@
 ---
 name: book-pipeline
-description: Launch the deep source-code-analysis book publishing pipeline. Orchestrates Agent Teams working in parallel through the full flow from clone to final draft. Same as /source-code-book:make-book command.
+description: Launch the deep source-code-analysis book publishing pipeline. Orchestrates Agent Teams working in parallel through the full flow from clone to final draft. Same as /tech-insider:make-book command.
 user-invocable: true
 ---
 

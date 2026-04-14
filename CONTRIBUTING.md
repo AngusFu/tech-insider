@@ -3,25 +3,25 @@
 ## Development
 
 ```bash
-# 克隆仓库
-git clone https://github.com/example/source-code-book-plugin.git
-cd source-code-book-plugin
+# Clone the repo
+git clone https://github.com/example/tech-insider.git
+cd tech-insider
 
-# 方式一：本地测试
+# Option 1: Local testing
 claude --plugin-dir .
 
-# 方式二：通过 marketplace 测试（更贴近真实安装）
+# Option 2: Via marketplace (closer to real installation)
 /plugin marketplace add .
-/plugin install source-code-book@source-code-book-marketplace
+/plugin install tech-insider@tech-insider-marketplace
 
-# 在 Claude Code 中运行
-/source-code-book:make-book https://github.com/example/repo --title "Test Book"
+# Run in Claude Code
+/tech-insider:make-book https://github.com/example/repo --title "Test Book"
 ```
 
 ## Plugin Structure
 
 ```
-source-code-book-plugin/
+tech-insider/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest
 ├── skills/                  # Skill definitions

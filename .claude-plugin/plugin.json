@@ -1,17 +1,17 @@
 {
-  "name": "source-code-book",
+  "name": "tech-insider",
   "description": "Automated publication-grade deep source-code analysis book generator powered by Agent Teams",
   "version": "1.0.0",
   "author": {
     "name": "机器毛"
   },
-  "homepage": "https://github.com/example/source-code-book-plugin",
+  "homepage": "https://github.com/example/tech-insider",
   "repository": {
     "type": "git",
-    "url": "https://github.com/example/source-code-book-plugin"
+    "url": "https://github.com/example/tech-insider"
   },
   "license": "MIT",
-  "icon": "📚",
+  "icon": "🔍",
   "keywords": [
     "book",
     "writing",
