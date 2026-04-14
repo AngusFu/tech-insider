@@ -1,21 +1,21 @@
 ---
 name: source-code-book
-description: 启动源码深度解析书籍出版管线。与 /source-code-book:start 命令相同，但以 skill 模式运行——所有工作由当前 Agent 直接完成，不委派给 subagent。适用于快速体验、小批量章节撰写或调试管线。
+description: 启动源码深度解析书籍出版管线。与 /source-code-book:start 命令相同。根据管线阶段需要，使用 subagent 并行执行工作。
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion
 ---
 
-# 源码深度解析书籍 — Skill（内联模式）
+# 源码深度解析书籍 — Skill（管线编排）
 
-你直接执行完整的书籍出版管线。**禁止使用 Agent 工具 spawn subagent——所有工作由你亲自完成。**
+你直接执行完整的书籍出版管线。按阶段顺序推进，每个阶段内根据需要**使用 subagent 并行执行**工作。
 
 ---
 
 ## 何时使用
 
-- 用户调用此 skill（`/source-code-book` 或通过 Skill 工具）
-- 与 `/source-code-book:start` 命令功能相同，但**不委派给 subagent**
-- 适用于：快速体验管线、小批量章节撰写、调试管线逻辑
+- 用户调用此 skill（通过 Skill 工具或 `/source-code-book`）
+- `/source-code-book:start` 命令会加载此 skill 并传递参数
+- 适用于：完整书籍生产、快速体验、调试管线逻辑
 
 ## 参数解析
 
@@ -38,9 +38,14 @@ mkdir -p "$BOOK_DIR"
 
 ## 管线编排
 
-按阶段顺序执行。**所有工作你亲自完成，不 spawn subagent。**
+按阶段顺序执行。每个阶段完成后，向用户报告进度，再进入下一阶段。
 
 ### Phase 1：克隆 + 分析
+
+```
+输入：仓库 URL 或本地路径
+输出：代码库指标（文件数、行数、目录结构）
+```
 
 1. 如果是 URL，`git clone`；如果是本地路径，验证存在
 2. 统计指标：
@@ -50,94 +55,140 @@ mkdir -p "$BOOK_DIR"
    find . -type d -maxdepth 2 | sort
    ```
 3. 阅读 README.md、入口文件，理解架构
-4. 向用户展示分析结果
+4. 向用户展示分析结果，确认进入下一步
 
 ### Phase 2：规划
 
-1. **你亲自创建** `BOOK_PLAN.md`：
-   - 分析代码库架构
-   - 制定 16 章大纲（5 个 Part）
-   - 每章描述、关键源文件、设计决策
-2. **你亲自创建** `STYLE_GUIDE.md`：
-   - 术语表、章节结构模板、代码引用格式
-   - Mermaid 规范、决策框格式、禁止事项
-   - 内容重合处理原则
-3. **你亲自创建** `EDITORIAL_PLAN.md`：
-   - 三审三校分工、封面/序言要求、附录计划
-4. 向用户展示规划摘要
+```
+输入：代码库分析结果、书名、副标题、关注领域
+输出：BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
+```
 
-### Phase 3：初稿撰写
+1. 启动 **book-planner** agent，传入代码库路径、书名、副标题、关注领域、`BOOK_DIR`
+2. 等待完成后，验证三个文件都已生成
+3. 向用户展示规划摘要（章节数、Part 分布）
 
-1. 按 Part 逐个撰写章节（因无 subagent，串行执行）：
-   - Ch01-03：基础篇
-   - Ch04-05：核心篇 A
-   - Ch06-07：核心篇 B
-   - Ch08-10：工具篇
-   - Ch11-16：多平台 + 工程篇
-2. 每章遵循 STYLE_GUIDE.md：
-   - 开头隐喻/名言
-   - Mermaid 图（1-3 张）
-   - 技术深潜（带 file:line 引用）
-   - 设计决策框
-   - 停下来想一想（≥2 问题）
-   - 可迁移的设计原则（≥3 条）
-3. 每完成一个 Part，向用户报告进度
+### Phase 3：初稿撰写（5 Writer 并行）
 
-### Phase 4：审稿
+```
+输入：BOOK_PLAN.md + STYLE_GUIDE.md
+输出：ch01.md ~ ch16.md
+```
 
-1. **你亲自运行**逐章检查：
-   - 结构合规、代码引用准确性、术语一致性
-2. **你亲自运行**跨章一致性检查：
-   - 术语不一致、内容重复、数据矛盾
-3. 生成 `review-*.md` 和 `review-consistency.md`
-4. 如有 FAIL，自行修复后再检查
+1. 按章节分配给 Writer：
+   - **book-writer-p1** → Ch01-03（基础篇）
+   - **book-writer-p2a** → Ch04-05（核心篇 A）
+   - **book-writer-p2b** → Ch06-07（核心篇 B）
+   - **book-writer-p3** → Ch08-10（工具篇）
+   - **book-writer-p45** → Ch11-16（多平台 + 工程篇）
+2. 每个 Writer 收到：其负责的章节描述、`STYLE_GUIDE.md`、`BOOK_PLAN.md`、代码库路径
+3. **5 个 Writer 并行启动**
+4. 完成后收集结果，向用户展示进度（N/5 完成）
 
-### Phase 5：验证
+### Phase 4：三审
 
-1. **你亲自运行**自动化结构检查：
-   - ASCII 图检测、Mermaid 计数、开头/结尾段落
-   - 决策框格式、代码引用数量
+#### 4a. 初审（逐章）
+
+```
+输入：所有章节 ch*.md + STYLE_GUIDE.md
+输出：review-chXX.md（每章一份）
+```
+
+1. 为每个 ch*.md 文件启动 **book-reviewer-agent**
+2. 检查：结构合规、代码引用准确性、术语一致性
+3. 输出 `review-chXX.md` 到 `BOOK_DIR`
+
+#### 4b. 复审（跨章一致性）
+
+```
+输入：所有 ch*.md + 所有 review-chXX.md + STYLE_GUIDE.md
+输出：review-consistency.md
+```
+
+1. 使用 **book-reviewer** skill 的"复审"部分，检查跨章一致性
+2. 检查：术语不一致、内容重复、数据矛盾、设计决策矛盾、交叉引用错误
+3. 输出 `review-consistency.md`
+
+#### 4c. 判定
+
+读取所有 review 报告：
+- **有 FAIL** → Phase 5（返工）
+- **全部 PASS** → Phase 6（验证）
+
+### Phase 5：返工
+
+```
+输入：review 报告 + 原始章节文件
+输出：修改后的 ch*.md
+```
+
+1. 对每个 FAIL 章节，向对应 Writer 发送返工指令（明确 FAIL 项 + 具体修复建议）
+2. Writer 修改后，**重新跑 Phase 4a 的初审**
+3. 最多返工 2 轮，超过后向用户报告并请求决定
+
+### Phase 6：验证
+
+```
+输入：所有章节 ch*.md
+输出：verification-status.md
+```
+
+1. 启动 **book-verifier** agent，运行自动化结构检查
 2. 输出 `verification-status.md`
+3. 展示验证结果表格。如有 FAIL，列出问题，用户确认后进入三校
 
-### Phase 6：三校
+### Phase 7：三校（并行启动）
 
-**你亲自运行**三项检查（可串行，也可按依赖关系分批）：
-- 一校：文字校对 → `proofread-1.md`
-- 二校：交叉引用 → `proofread-2.md`
-- 三校：可读性 → `proofread-3.md`
+```
+输入：所有章节 ch*.md + STYLE_GUIDE.md
+输出：proofread-1.md + proofread-2.md + proofread-3.md + 封面 + 序言
+```
 
-同时生成：封面要求文档、序言初稿。
+同时启动（互不依赖）：
+- **一校**（文字校对）→ 使用 **book-proofreader** skill 的一校模式 → `proofread-1.md`
+- **二校**（交叉引用）→ 使用 **book-proofreader** skill 的二校模式 → `proofread-2.md`
+- **三校**（可读性）→ 使用 **book-proofreader** skill 的三校模式 → `proofread-3.md`
+- **封面设计** → 生成封面要求文档
+- **序言撰写** → 生成序言初稿
 
-### Phase 7：统稿
+全部完成后向用户报告。
 
-1. 按优先级修复所有问题：
-   - P0：决策框格式、ASCII 图、缺失结构
-   - P1：内容去重、交叉引用、数据一致性
-   - P2：术语统一、难度缓冲、叙事过渡
-2. 编写 4 个附录（A 文件导航、B 工具参考、C 设计决策汇总、D 术语表）
-3. 编译终稿 `book-final.md`
+### Phase 8：统稿
 
-### Phase 8：交付
+```
+输入：所有 ch*.md + 三审报告 + 三校报告 + STYLE_GUIDE.md
+输出：修复后的章节 + book-final.md
+```
 
-1. 展示终稿统计（行数、字节数、章节数）
-2. 将所有终稿文件交付给用户
+1. 启动 **book-editor-in-chief** agent
+2. 按优先级修复：P0（格式/ASCII/结构）→ P1（去重/交叉引用/数据）→ P2（术语/过渡）
+3. 编写 4 个附录（A 文件导航、B 工具参考、C 设计决策汇总、D 术语表）
+4. 编译终稿 `book-final.md`
+5. 向用户展示统稿结果（修复数量、终稿字数）
+
+### Phase 9：交付
+
+1. 展示终稿统计：`wc -l`、`wc -c`、章节数
+2. 将终稿文件交付给用户
 3. 展示管线执行总结
 
 ---
 
-## 与命令模式的区别
+## 失败处理原则
 
-| 维度 | /source-code-book:start（命令） | source-code-book（skill） |
-|------|------|------|
-| 执行方式 | 委派给 subagent（并行） | 当前 Agent 亲自执行（串行） |
-| 速度 | 快（5 Writer 并行） | 较慢（逐个 Part） |
-| 适用场景 | 完整书籍生产 | 快速体验、调试、少量章节 |
-| 可用工具 | 含 Agent | **不含 Agent** |
-| 进度反馈 | 各阶段自动报告 | 每 Part 完成后报告 |
+- **规划阶段失败** → 向用户报告分析不足，请求更多信息
+- **审稿 FAIL** → 返工，最多 2 轮
+- **验证 FAIL** → 列出具体问题，用户确认后继续
+- **统稿阶段** → 记录所有 P0/P1/P2 修复，最终报告中展示
 
-## 失败处理
+## 进度反馈
 
-- **规划阶段**：分析不足 → 请求更多信息
-- **审稿 FAIL**：自行修复，最多 2 轮
-- **验证 FAIL**：列出问题，用户确认后继续
-- **统稿**：记录所有修复，最终报告展示
+每个阶段完成后输出：
+```
+✅ Phase N: [阶段名] — 完成
+  - [关键产出 1]
+  - [关键产出 2]
+  - [耗时 / 文件数 / 其他指标]
+```
+
+整个管线完成时，输出完整总结。

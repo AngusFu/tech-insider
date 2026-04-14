@@ -42,6 +42,15 @@ claude --plugin-dir /path/to/source-code-book-plugin
   --subtitle "从源码理解自我进化的 AI Agent 架构"
 ```
 
+### 两种启动方式
+
+| 方式 | 触发 | 执行方式 | 适用场景 |
+|------|------|---------|---------|
+| `/source-code-book:start` | 命令 | 编排 subagent 并行执行 | 完整书籍生产 |
+| `source-code-book` skill | Skill 工具 | 编排 subagent 并行执行 | 同上，skill 入口 |
+
+两者共享同一管线逻辑（`skills/source-code-book/SKILL.md`），命令只做参数解析后加载 skill。
+
 ## 架构
 
 ```
@@ -51,9 +60,9 @@ source-code-book-plugin/
 ├── skills/
 │   ├── book-planner/            # 规划器：分析代码库、制定大纲、风格指南
 │   ├── book-writer/             # Writer 模板：章节写作规范
-│   ├── book-reviewer/           # 审稿人：结构检查 + 跨章一致性
+│   ├── book-reviewer/           # 跨章一致性审查（复审）
 │   ├── book-proofreader/        # 三校校对：文字/交叉引用/可读性
-│   └── book-compiler/           # 统稿：修复 + 去重 + 终稿编译
+│   └── source-code-book/        # 管线 skill：完整编排（含并行 subagent）
 ├── agents/
 │   ├── book-planner.md          # 规划 Agent
 │   ├── book-writer-p1.md        # Writer Part 1（Ch01-03）
@@ -79,17 +88,22 @@ source-code-book-plugin/
 
 ```mermaid
 flowchart TD
-    S1["1. 克隆 + 分析<br/>git clone, wc -l, find, understand skill"]
-    S2["2. 规划<br/>BOOK_PLAN.md, STYLE_GUIDE.md,<br/>EDITORIAL_PLAN.md"]
-    S3["3. 初稿<br/>5 writers 并行: p1→Ch01-03, p2a→Ch04-05,<br/>p2b→Ch06-07, p3→Ch08-10, p45→Ch11-16"]
-    S4["4. 三审<br/>初审: book-reviewer-agent（逐章结构检查）<br/>复审: reviewer-consistency（跨章一致性）"]
-    S5["5. 返工<br/>writers 根据 review 报告修改"]
-    S6["6. 验证<br/>book-verifier 自动结构检查"]
-    S7["7. 三校（并行启动）<br/>一校: 文字校对<br/>二校: 交叉引用<br/>三校: 可读性"]
-    S8["8. 统稿<br/>book-editor-in-chief<br/>P0/P1/P2 修复 + 内容去重 + 风格统一"]
-    S9["9. 附录 + 终稿<br/>book-final.md（含 4 个附录）"]
+    S1["1. 克隆 + 分析"]
+    S2["2. 规划<br/>BOOK_PLAN.md, STYLE_GUIDE.md, EDITORIAL_PLAN.md"]
+    S3["3. 初稿<br/>5 writers 并行"]
+    S4["4. 三审<br/>初审: 逐章<br/>复审: 跨章一致性"]
+    S5["5. 返工<br/>最多 2 轮"]
+    S6["6. 验证<br/>book-verifier 结构检查"]
+    S7["7. 三校并行<br/>一校/二校/三校/封面/序言"]
+    S8["8. 统稿<br/>book-editor-in-chief"]
+    S9["9. 交付<br/>book-final.md"]
 
-    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9
+    S1 --> S2 --> S3 --> S4
+    S4 -->|FAIL| S5
+    S4 -->|PASS| S6
+    S5 -->|重新初审| S4
+    S5 -->|超过 2 轮| S4
+    S6 --> S7 --> S8 --> S9
 ```
 
 ## 章节结构模板

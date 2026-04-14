@@ -70,5 +70,13 @@ After all fixes, compile everything into `book-final.md`:
 ## 附录 D：术语表
 ```
 
+### 附录编写指南
+- **附录 A**：按功能区域分类，每个文件一行，标注主要功能和大小
+- **附录 B**：Tool 名称 | 所在文件 | Toolset | 简要描述
+- **附录 C**：从所有章节提取所有设计决策框，按主题分组，包含章节引用
+- **附录 D**：英文 | 中文 | 简要定义，按主题分组
+
+## Execution
+
 Work systematically: P0 first, then P1, then P2. Track what you've fixed.
 Edit chapter files in place, then compile the final book.
