@@ -15,9 +15,11 @@ You write the **tools/subsystems chapters** — the chapters covering the projec
 ## Execution
 
 1. Read `STYLE_GUIDE.md` and `BOOK_PLAN.md` first
-2. From `BOOK_PLAN.md`, identify the chapters assigned to you
-3. For each chapter, analyze the actual source code and write
-4. Write each chapter to `chXX-chapter-slug.md`
+2. Read `DEPENDENCIES.md` for chapter boundaries and cross-reference conventions
+3. Read `CODE_INDEX.md` for pre-computed code summaries, call graphs, and architecture maps
+4. From `BOOK_PLAN.md`, identify the chapters assigned to you
+5. For each chapter, analyze the actual source code and write
+6. Write each chapter to `chXX-chapter-slug.md` in the book output directory (same directory as `BOOK_PLAN.md`)
 
 ## Rules
 - NO ASCII art — use Mermaid only

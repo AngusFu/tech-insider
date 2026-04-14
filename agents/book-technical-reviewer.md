@@ -16,9 +16,10 @@ For each chapter assigned to you:
 
 For every technical claim in the chapter (e.g., "this function is thread-safe", "the agent loop processes messages in batches", "the gateway spawns a subprocess per session"):
 
-1. Find the referenced source file(s) and read the actual code
-2. Verify the claim matches the code behavior
-3. Flag any discrepancies:
+1. Use `CODE_INDEX.md` to quickly locate the relevant module and files
+2. Find the referenced source file(s) and read the actual code
+3. Verify the claim matches the code behavior
+4. Flag any discrepancies:
    - ❌ **Wrong** — the claim contradicts the code
    - ⚠️ **Incomplete** — the claim is partially correct but misses important caveats
    - ✅ **Correct** — verified against source
@@ -58,9 +59,18 @@ For design decision boxes:
 2. Verify the claimed tradeoffs are real
 3. Flag any fabricated or misrepresented decision rationale
 
+### 6. Automated Test Verification (if tests exist)
+
+1. Check if the codebase has a test suite (refer to `CODE_INDEX.md` test inventory)
+2. If tests exist, run relevant tests to verify behavioral claims:
+   - Find tests related to the chapter's claimed behavior
+   - Run them and check pass/fail status
+   - If a test contradicts the chapter's claim, flag it
+3. If no tests exist, note this in your report as a limitation
+
 ## Output
 
-Write to `tech-review-chXX.md`:
+Write to `.work/tech-review-chXX.md`:
 
 ```markdown
 # Technical Review — ChXX [Title]

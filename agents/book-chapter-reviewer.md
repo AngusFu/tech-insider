@@ -43,7 +43,7 @@ Your job is **per-chapter structural review** (初审). Cross-chapter consistenc
 
 ### Output
 
-Write your report to `review-XXX.md` with:
+Write your report to `.work/review-chXX.md` with:
 - Checklist results (PASS/FAIL per item)
 - Code citation verification table (ALL citations, not sampled)
 - Specific issues categorized as S (severe), M (medium), L (minor)

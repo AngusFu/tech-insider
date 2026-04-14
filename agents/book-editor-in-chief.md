@@ -11,13 +11,15 @@ You are the LAST person in the pipeline. Your job is to fix all issues and produ
 ## Input
 
 Read these files first:
-- `proofread-1.md` (一校 — text/format issues)
-- `proofread-2.md` (二校 — cross-ref errors, content overlap)
-- `proofread-3.md` (三校 — readability, tone consistency)
-- `review-*.md` (review reports)
-- `review-consistency.md` (cross-chapter consistency)
+- `.work/proofread-1.md` (一校 — text/format issues)
+- `.work/proofread-2.md` (二校 — cross-ref errors, content overlap)
+- `.work/proofread-3.md` (三校 — readability, tone consistency)
+- `.work/review-*.md` (review reports)
+- `.work/review-consistency.md` (cross-chapter consistency)
 - `STYLE_GUIDE.md`
-- `verification-status.md`
+- `EDITORIAL_PLAN.md` (review/proofread roles, synthesis plan)
+- `.work/verification-status.md`
+- `.work/final-review-verdict.md` (go/no-go decision from Phase 6d)
 - All chapter files (`ch*.md`)
 
 ## Fix Priority
@@ -50,7 +52,7 @@ After all fixes, compile everything into `book-final.md`:
 
 ---
 
-（序言）
+（序言 — read `preface.md` and insert here）
 
 ---
 

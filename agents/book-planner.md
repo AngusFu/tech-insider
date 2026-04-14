@@ -53,7 +53,7 @@ Must include:
 2. Chapter structure template: metaphor → Mermaid → deep-dive → decision box → reflection → principles
 3. Code citation format: `file:line`
 4. Mermaid diagram conventions
-5. Design decision box format: 决策/备选/权衡/[项目名称] 的理由
+5. Design decision box format: Decision / Alternatives / Trade-offs / [Project Name]'s rationale
 6. Prohibited items (ASCII art, tutorial content, filler transitions)
 7. Content overlap rules (each concept has one primary chapter)
 8. Quantitative data rules (use `wc -l`, `ls -lh`, `find` for real numbers)

@@ -1,53 +1,52 @@
 ---
 name: book-pipeline
-description: 启动源码深度解析书籍出版管线。编排 Agent Teams 并行工作，完成从克隆到终稿的全流程。与 /source-code-book:start 命令相同。
+description: Launch the deep source-code-analysis book publishing pipeline. Orchestrates Agent Teams working in parallel through the full flow from clone to final draft. Same as /source-code-book:make-book command.
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion
 ---
 
-# 源码深度解析书籍 — 管线编排
+# Deep Source-Code Analysis Book — Pipeline Orchestration
 
-你直接执行完整的书籍出版管线。按阶段顺序推进，每个阶段内根据需要**使用 subagent 并行执行**工作。
+You execute the full book publishing pipeline. Move through phases sequentially, using **subagent parallelism within each phase** as needed.
 
 ---
 
-## 参数解析
+## Parameter Parsing
 
-从用户输入中提取：
-- 第一个非 `--` 开头的参数 → 仓库 URL 或本地路径（必需）
-- `--title` → 书名（可选，选题阶段也可由 AI 生成）
-- `--subtitle` → 副标题（可选）
-- `--audience` → 目标读者（可选，如"Python 开发者"、"Go 后端工程师"）
-- `--focus` → 重点关注领域（可选，逗号分隔）
-- `--book-dir` → 书籍输出目录，默认 `<project-name>-book/`
+Extract from user input:
+- First argument not starting with `--` → repo URL or local path (required)
+- `--title` → book title (optional; can also be AI-generated during topic-selection phase)
+- `--subtitle` → subtitle (optional)
+- `--audience` → target readers (optional, e.g. "Python developers", "Go backend engineers")
+- `--focus` → key focus areas (optional, comma-separated)
+- `--book-dir` → book output directory, defaults to `<project-name>-book/`
 
-如果缺少仓库路径，用 AskUserQuestion 询问用户补全。
+If the repo path is missing, use AskUserQuestion to prompt the user.
 
-确定 `BOOK_DIR` 后：
+After determining `BOOK_DIR`:
 ```bash
-mkdir -p "$BOOK_DIR"
+mkdir -p "$BOOK_DIR" "$BOOK_DIR/.work"
 ```
 
 ---
 
-## 管线编排
+## Pipeline Orchestration
 
-按阶段顺序执行。每个阶段完成后，向用户报告并确认，再进入下一阶段。
+Execute phases in order. After each phase completes, report to the user and confirm before proceeding.
 
-### Phase 1：克隆 + 分析
+### Phase 1: Clone + Analyze
 
 ```
-输入：仓库 URL 或本地路径
-输出：代码库指标（语言分布、文件数、行数、目录结构、测试覆盖）
+Input: repo URL or local path
+Output: codebase metrics (language distribution, file count, LOC, directory structure, test coverage)
 ```
 
-1. 如果是 URL，`git clone`；如果是本地路径，验证存在
-2. **检测语言分布**（polyglot）：
+1. If URL, `git clone`; if local path, verify it exists
+2. **Detect language distribution** (polyglot):
    ```bash
    find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
      sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
    ```
-3. 统计指标（用检测到的主语言替换 `<ext>`）：
+3. Gather metrics (replace `<ext>` with the detected primary language):
    ```bash
    find . -type f -name "*.<ext>" | wc -l
    find . -type f -name "*.<ext>" -exec cat {} + | wc -l
@@ -55,214 +54,268 @@ mkdir -p "$BOOK_DIR"
    find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort
    du -sh .
    ```
-4. 阅读 README.md、入口文件，理解架构
-5. 向用户展示分析结果，确认进入选题
+4. Read README.md and entry-point files to understand architecture
+5. Present analysis results to the user; confirm before moving to topic selection
 
-### Phase 2：选题
-
-```
-输入：代码库分析结果、用户意图
-输出：选题报告（TOPIC.md）
-```
-
-这是出版的第一个决策点。**先判断值不值得写、写给谁、怎么写，再动手。**
-
-1. 基于代码分析结果，生成选题报告 `TOPIC.md`，包含：
-   - **项目定位** — 这个项目是什么、解决什么问题
-   - **技术亮点** — 最值得写的 3-5 个技术决策/架构设计
-   - **目标读者** — 谁会读这本书、需要什么前置知识
-   - **写作角度** — 从哪个角度切入（架构分析 vs 使用指南 vs 源码解读）
-   - **书名建议** — 3-5 个备选书名 + 副标题
-   - **章节数建议** — 12-18 章（根据代码库复杂度）
-   - **不适合写的部分** — 哪些内容不适合深度解析
-2. 向用户展示选题报告
-3. 用户确认或修改后，进入大纲
-
-### Phase 3：大纲
+### Phase 2: Topic Selection
 
 ```
-输入：TOPIC.md + 代码库
-输出：BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
+Input: codebase analysis results, user intent
+Output: topic report (TOPIC.md)
 ```
 
-1. 启动 **book-planner** agent，传入代码库路径、已确认的选题（TOPIC.md）、`BOOK_DIR`
-2. 生成：
-   - `BOOK_PLAN.md` — 详细章节大纲
-   - `STYLE_GUIDE.md` — 写作风格指南
-   - `EDITORIAL_PLAN.md` — 编辑管线计划
-3. 向用户展示大纲摘要，确认后进入协调
+This is the first decision point for publication. **Judge whether it's worth writing, for whom, and how — before doing anything.**
 
-### Phase 4：写前协调（关键！防止文风分裂）
+1. Based on code analysis, generate topic report `TOPIC.md` containing:
+   - **Project Positioning** — what the project is and what problem it solves
+   - **Technical Highlights** — the 3-5 most noteworthy technical decisions or architectural designs
+   - **Target Audience** — who will read this book and what prerequisites they need
+   - **Writing Angle** — which lens to use (architecture analysis vs. usage guide vs. source-code walkthrough)
+   - **Title Suggestions** — 3-5 candidate titles + subtitles
+   - **Recommended Chapter Count** — 12-18 chapters (based on codebase complexity)
+   - **What Not to Cover** — topics unsuitable for deep analysis
+2. Present the topic report to the user
+3. After user confirmation or edits, proceed to outline
 
-```
-输入：BOOK_PLAN.md + STYLE_GUIDE.md
-输出：DEPENDENCIES.md（章节依赖图 + 交叉引用约定）
-```
-
-**5 个 Writer 并行写之前，先让他们互相知道边界在哪里。**
-
-1. 生成章节依赖图 `DEPENDENCIES.md`：
-   - 每个概念的"主章节"归属（谁深度分析）
-   - 其他章节的交叉引用约定（"详见第X章"的具体措辞）
-   - Writer 之间的内容边界（谁覆盖什么、不覆盖什么）
-   - 相邻章节的过渡建议（前一章结尾自然引导到下一章开头）
-2. 将 `DEPENDENCIES.md` 发送给每个 Writer 作为写作前的参考
-3. 确认所有 Writer 已知晓边界后，进入初稿
-
-### Phase 5：初稿撰写（5 Writer 并行）
+### Phase 3: Outline
 
 ```
-输入：BOOK_PLAN.md + STYLE_GUIDE.md + DEPENDENCIES.md
-输出：各章 chXX-*.md 文件
+Input: TOPIC.md + codebase
+Output: BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 ```
 
-1. 按 `BOOK_PLAN.md` 的章节分配给 Writer：
-   - **book-writer-foundation** → 基础篇（前 2-3 章）
-   - **book-writer-core-loop** → 核心循环篇
-   - **book-writer-core-system** → 核心系统篇
-   - **book-writer-tools** → 工具/子系统篇
-   - **book-writer-integration** → 整合与工程篇
-   > 每个 Writer 从 `BOOK_PLAN.md` 读取自己被分配的具体章节，从 `DEPENDENCIES.md` 了解边界和交叉引用约定
-2. 每个 Writer 收到：`STYLE_GUIDE.md`、`BOOK_PLAN.md`、`DEPENDENCIES.md`、代码库路径
-3. **5 个 Writer 并行启动**
-4. 完成后收集结果，向用户展示进度
+1. Launch the **book-planner** agent, passing the codebase path, confirmed topic (TOPIC.md), and `BOOK_DIR`
+2. Generate:
+   - `BOOK_PLAN.md` — detailed chapter outline
+   - `STYLE_GUIDE.md` — writing style guide
+   - `EDITORIAL_PLAN.md` — editorial pipeline plan
+3. Present outline summary to the user; confirm before moving to coordination
 
-### Phase 6：三审
-
-#### 6a. 初审（逐章结构检查）
+### Phase 4: Pre-Writing Coordination (Critical — Prevents Style Fragmentation)
 
 ```
-输入：所有章节 ch*.md + STYLE_GUIDE.md
-输出：review-chXX.md（每章一份）
+Input: BOOK_PLAN.md + STYLE_GUIDE.md
+Output: DEPENDENCIES.md (chapter dependency graph + cross-reference conventions)
 ```
 
-1. 为每个 ch*.md 文件启动 **book-chapter-reviewer** agent（逐章结构检查）
-2. **多个 reviewer 并行启动**
-3. 输出 `review-chXX.md` 到 `BOOK_DIR`
+**Before 5 Writers start in parallel, make sure they all know where their boundaries are.**
 
-#### 6b. 技术评审（事实核对，关键！）
+1. Generate chapter dependency graph `DEPENDENCIES.md`:
+   - "Home chapter" for each concept (who does the deep analysis)
+   - Cross-reference conventions for other chapters (exact wording for "see Chapter X")
+   - Content boundaries between Writers (who covers what, who doesn't)
+   - Transition suggestions between adjacent chapters (how the end of one chapter naturally leads into the next)
+2. Send `DEPENDENCIES.md` to each Writer as a pre-writing reference
+3. Confirm all Writers are aware of boundaries before starting drafts
 
-```
-输入：所有章节 ch*.md + 源码库
-输出：tech-review-chXX.md（每章一份）
-```
-
-**这不是格式检查，这是事实检查。检查章节里说的代码逻辑是否真的和源码一致。**
-
-1. 为每个 ch*.md 文件启动 **book-technical-reviewer** agent
-2. **多个 technical reviewer 并行启动**
-3. 每个 reviewer 检查：
-   - **代码逻辑** — 章节声称的行为是否和实际代码一致
-   - **架构描述** — 描述的架构是否和实际代码结构一致
-   - **代码引用上下文** — file:line 指向的代码是否真的是章节描述的那个功能
-   - **数据准确性** — 性能数据、数字是否有依据
-   - **设计决策真实性** — 描述的"备选方案"和"权衡"是否真实存在
-4. 输出 `tech-review-chXX.md` 到 `BOOK_DIR`
-
-#### 6c. 复审（跨章一致性）
+### Phase 4.5: Code Index (Token Budget Reduction)
 
 ```
-输入：所有 ch*.md + 所有 review-chXX.md + 所有 tech-review-chXX.md + STYLE_GUIDE.md
-输出：review-consistency.md
+Input: codebase + BOOK_PLAN.md
+Output: CODE_INDEX.md (pre-computed code summary + call graph + architecture map)
 ```
 
-1. 启动 **book-consistency-reviewer** skill，检查跨章一致性
-2. 同时检查：不同章节对同一技术点的描述是否矛盾
-3. 输出 `review-consistency.md`
+**Writers and reviewers query this index instead of reading raw source — cuts token cost by 50%+.**
 
-#### 6d. 终审（整体质量）
+1. Scan the codebase to produce `CODE_INDEX.md` containing:
+   - **Module summary** — top-level directory → purpose → key files → file count → LOC
+   - **Call graph** — entry points → core functions → leaf functions (top N most-referenced)
+   - **Data flow map** — how data moves through the system (request → response lifecycle)
+   - **Key constants / configs** — important thresholds, limits, defaults from code
+   - **Test inventory** — test file locations, framework used, approximate coverage
+   - **Architecture summary** — layer boundaries, import relationships, cross-cutting concerns
+2. Writers use this index as their primary reference; drill into raw source only for specific citations
+3. Technical reviewers cross-reference claims against this index first, then verify specific files
 
-```
-输入：所有 review 报告 + 所有 tech-review 报告 + 所有章节
-输出：终审结论（是否可发稿）
-```
-
-1. 综合初审、技术评审、复审结果，判断整体质量
-2. 输出终审结论：可发稿 / 需返工
-
-判定：
-- **需返工**（任何章节技术评审 FAIL）→ Phase 7
-- **需返工**（初审或复审 FAIL）→ Phase 7
-- **可发稿** → Phase 8（验证）
-
-### Phase 7：返工
+### Phase 5: First Draft Writing (Staged — Prevents Writer Drift)
 
 ```
-输入：review 报告 + tech-review 报告 + 原始章节文件
-输出：修改后的 ch*.md
+Input: BOOK_PLAN.md + STYLE_GUIDE.md + DEPENDENCIES.md + CODE_INDEX.md
+Output: chapter files chXX-*.md
 ```
 
-1. 对每个 FAIL 章节，向对应 Writer 发送返工指令（包括结构问题 + 事实错误）
-2. **事实错误优先** — 技术评审的 Wrong 项必须先修正，因为可能影响后续章节的交叉引用
-3. Writer 修改后，**重新跑 Phase 6a 的初审 + Phase 6b 的技术评审**
-4. 最多返工 2 轮，超过后向用户报告并请求决定
+1. Assign chapters from `BOOK_PLAN.md` to Writers:
+   - **book-writer-foundation** → Foundation chapters (first 2-3 chapters)
+   - **book-writer-core-loop** → Core loop chapter
+   - **book-writer-core-system** → Core systems chapter
+   - **book-writer-tools** → Tools / subsystems chapter
+   - **book-writer-integration** → Integration and engineering chapter
+   > Each Writer reads their assigned chapters from `BOOK_PLAN.md`, boundaries from `DEPENDENCIES.md`, and code summaries from `CODE_INDEX.md`
+2. **Batch 1**: Launch **book-writer-foundation** first (1-2 chapters). These set the tone for the entire book.
+3. **Checkpoint**: After Batch 1 completes, review the output for style, depth, and tone alignment with STYLE_GUIDE.md. If acceptable, proceed to Batch 2.
+4. **Batch 2**: Launch remaining **4 Writers in parallel**, using the Batch 1 output as a style reference sample.
+5. Collect results on completion; show progress to the user
 
-### Phase 8：验证
+### Phase 6: Three Reviews
 
-```
-输入：所有章节 ch*.md
-输出：verification-status.md
-```
-
-1. 启动 **book-verifier** agent，运行自动化结构检查
-2. 输出 `verification-status.md`
-3. 展示验证结果表格。如有 FAIL，列出问题，用户确认后进入校对
-
-### Phase 9：校对（两校并行）
+#### 6a. Initial Review (Per-Chapter Structure Check)
 
 ```
-输入：所有章节 ch*.md + STYLE_GUIDE.md
-输出：proofread-1.md + proofread-2.md + 封面 + 序言
+Input: all chapter files ch*.md + STYLE_GUIDE.md
+Output: `.work/review-chXX.md` (one per chapter)
 ```
 
-**两校制**：文字+交叉引用合并为一校，可读性单独为二校。
+1. Launch a **book-chapter-reviewer** agent for each ch*.md file (per-chapter structure check)
+2. **Launch multiple reviewers in parallel**
+3. Output `.work/review-chXX.md` to `BOOK_DIR/.work/`
 
-同时启动（互不依赖）：
-- **一校**（文字 + 交叉引用）→ 使用 **book-proofreader** skill 的一校 + 二校合并模式 → `proofread-1.md`
-- **二校**（可读性 + 叙事连贯 + 语气统一）→ 使用 **book-proofreader** skill 的三校模式 → `proofread-2.md`
-- **封面设计** → 生成封面要求文档
-- **序言撰写** → 生成序言初稿
-
-全部完成后向用户报告。
-
-### Phase 10：统稿（分 chunk 处理）
+#### 6b. Technical Review (Fact-Checking — Critical!)
 
 ```
-输入：所有 ch*.md + 三审报告 + 校对报告 + STYLE_GUIDE.md
-输出：修复后的章节 + book-final.md
+Input: all chapter files ch*.md + source repo + CODE_INDEX.md
+Output: `.work/tech-review-chXX.md` (one per chapter)
 ```
 
-**为避免上下文窗口饱和，分三步处理：**
+**This is not a format check — it is a fact check. Verify whether the code logic described in each chapter actually matches the source code.**
 
-1. **第一轮：P0 修复** — 启动 **book-editor-in-chief** agent 处理所有 P0 问题（决策框格式统一、ASCII 图替换、缺失结构补齐），输出修复后的章节
-2. **第二轮：P1 修复** — 启动新的 **book-editor-in-chief** agent 处理所有 P1 问题（内容去重、交叉引用修正、数据一致性），输出修复后的章节
-3. **第三轮：P2 + 终稿编译** — 启动新的 **book-editor-in-chief** agent 处理 P2 问题（术语统一、难度缓冲、叙事过渡），编写 4 个附录，编译终稿 `book-final.md`
-4. 向用户展示统稿结果（修复数量、终稿字数）
+1. Launch a **book-technical-reviewer** agent for each ch*.md file
+2. **Launch multiple technical reviewers in parallel**
+3. Each reviewer checks:
+   - **Code Logic** — does the claimed behavior match the actual code
+   - **Architecture Description** — does the described architecture match the actual code structure
+   - **Code Reference Context** — does the code at `file:line` actually implement what the chapter claims
+   - **Data Accuracy** — are performance figures and numbers backed by evidence
+   - **Design Decision Authenticity** — do the described "alternatives" and "trade-offs" actually exist
+4. **Automated test verification** (if tests exist):
+   - Detect test framework from `CODE_INDEX.md` test inventory
+   - Run relevant tests to verify behavioral claims:
+     ```bash
+     # Example: if pytest tests exist
+     pytest -v tests/ --tb=short 2>&1 | head -50
+     ```
+   - If a chapter claims "function X handles Y case correctly", verify a test exists that covers it
+   - If the codebase has no tests, fall back to manual source verification
+5. Output `.work/tech-review-chXX.md` to `BOOK_DIR/.work/`
 
-### Phase 11：交付
+#### 6c. Cross-Chapter Review (Consistency)
 
-1. 展示终稿统计（`wc -l`、`wc -c`、章节数）
-2. 将终稿文件交付给用户
-3. 展示管线执行总结
+```
+Input: all ch*.md + all `.work/review-chXX.md` + all `.work/tech-review-chXX.md` + STYLE_GUIDE.md
+Output: `.work/review-consistency.md`
+```
+
+1. Launch **book-consistency-reviewer** skill to check cross-chapter consistency
+2. Check: do different chapters contradict each other on the same technical point
+3. Output `.work/review-consistency.md`
+
+#### 6d. Final Review (Overall Quality — Done by Pipeline Agent)
+
+```
+Input: all review reports (`.work/`) + all tech-review reports (`.work/`) + all chapters + `.work/review-consistency.md`
+Output: final review verdict written to `.work/final-review-verdict.md`
+```
+
+The pipeline agent synthesizes all review results and makes the go/no-go decision:
+
+1. Collect all initial review verdicts (`review-chXX.md`)
+2. Collect all technical review verdicts (`tech-review-chXX.md`)
+3. Read the cross-chapter consistency report (`review-consistency.md`)
+4. Tally PASS/FAIL counts and identify critical issues
+5. Write verdict to `.work/final-review-verdict.md`
+6. Judge:
+   - Any technical review FAIL → requires rework
+   - Any initial review FAIL → requires rework
+   - Consistency report FAIL → requires rework
+   - All PASS → ready for publication → Phase 8
+
+### Phase 7: Rework
+
+```
+Input: review reports (`.work/`) + tech-review reports (`.work/`) + original chapter files
+Output: revised ch*.md files
+```
+
+1. For each FAIL chapter, send rework instructions to the corresponding Writer (including structural issues + factual errors)
+2. **Factual errors first** — tech review "Wrong" items must be fixed first because they may affect cross-references in other chapters
+3. After Writer revisions, **re-run Phase 6a (initial review) + Phase 6b (technical review)**
+4. Maximum 2 rework rounds; beyond that, report to the user for a decision
+
+### Phase 8: Verification
+
+```
+Input: all chapter files ch*.md
+Output: `.work/verification-status.md`
+```
+
+1. Launch **book-verifier** agent to run automated structure checks including Mermaid syntax validation
+2. Mermaid validation:
+   - Extract all ```mermaid blocks from each chapter
+   - Try rendering with `mmdc` (mermaid CLI) if installed — authoritative check
+   - If `mmdc` unavailable, run heuristic checks (unbalanced brackets, missing arrows, invalid directives)
+3. Output `.work/verification-status.md` with Mermaid syntax verdict per diagram
+4. Display verification results table. If any FAILs, list the issues, get user confirmation, then proceed to proofreading
+
+### Phase 9: Three Proofreads + Preface (Parallel)
+
+```
+Input: all chapter files ch*.md + STYLE_GUIDE.md + TOPIC.md + BOOK_PLAN.md
+Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md` + `preface.md`
+```
+
+Launch simultaneously (no inter-dependencies):
+- **First Proofread** (text proofreading) → use **book-proofreader** skill's first-proofread mode → `.work/proofread-1.md`
+- **Second Proofread** (cross-references) → use **book-proofreader** skill's second-proofread mode → `.work/proofread-2.md`
+- **Third Proofread** (readability + narrative coherence + tone consistency) → use **book-proofreader** skill's readability pass mode → `.work/proofread-3.md`
+- **Preface** → launch **book-preface-writer** agent → `preface.md`
+
+Report to the user when all are complete.
+
+### Phase 9.5: Preface Review
+
+```
+Input: preface.md + TOPIC.md + BOOK_PLAN.md + STYLE_GUIDE.md
+Output: `.work/preface-review.md`
+```
+
+The preface is the first thing readers see — review it before incorporation:
+
+1. **Accuracy** — does the preface's project positioning match TOPIC.md?
+2. **Tone** — matches STYLE_GUIDE conventions (analytical, "we", not tutorial)?
+3. **Scope** — does it introduce without diving into technical details?
+4. **Structure** — covers motivation, significance, target audience, how to use?
+5. **Length** — 1-2 pages, no Mermaid, no code citations
+6. **Factual claims** — any project metrics or claims that can be verified?
+
+Write findings to `.work/preface-review.md`. If FAIL, fix before Phase 10.
+
+### Phase 10: Synthesis (Chunked Processing)
+
+```
+Input: all ch*.md + preface.md + three review reports (`.work/`) + proofread reports (`.work/`) + `.work/preface-review.md` + STYLE_GUIDE.md
+Output: fixed chapters + fixed preface + book-final.md
+```
+
+**To avoid context-window saturation, process in three passes:**
+
+1. **Pass 1: P0 Fixes** — launch **book-editor-in-chief** agent to handle all P0 issues (decision-box formatting, ASCII diagram replacement, missing structure completion), output fixed chapters
+2. **Pass 2: P1 Fixes** — launch a new **book-editor-in-chief** agent to handle all P1 issues (content deduplication, cross-reference correction, data consistency), output fixed chapters
+3. **Pass 3: P2 Fixes + Final Compilation** — launch a new **book-editor-in-chief** agent to handle P2 issues (terminology unification, difficulty buffering, narrative transitions), write 4 appendices, compile final draft `book-final.md`
+4. Present synthesis results to the user (fix counts, final word count)
+
+### Phase 11: Delivery
+
+1. Show final draft statistics (`wc -l`, `wc -c`, chapter count)
+2. Deliver final draft files to the user
+3. Display pipeline execution summary
 
 ---
 
-## 失败处理原则
+## Failure Handling Principles
 
-- **选题阶段** → 项目不适合写书（太小、太简单、文档不足），向用户说明
-- **大纲阶段** → 分析不足，请求更多信息
-- **审稿 FAIL** → 返工，最多 2 轮
-- **验证 FAIL** → 列出具体问题，用户确认后继续
-- **统稿阶段** → 记录所有 P0/P1/P2 修复，最终报告中展示
+- **Topic Selection** → project unsuitable for a book (too small, too simple, insufficient docs); explain to the user
+- **Outline** → analysis insufficient; request more information
+- **Review FAIL** → rework, max 2 rounds
+- **Verification FAIL** → list specific issues; continue after user confirmation
+- **Synthesis** → record all P0/P1/P2 fixes; display in final report
 
-## 进度反馈
+## Progress Reporting
 
-每个阶段完成后输出：
+After each phase completes, output:
 ```
-✅ Phase N: [阶段名] — 完成
-  - [关键产出 1]
-  - [关键产出 2]
-  - [耗时 / 文件数 / 其他指标]
+✅ Phase N: [Phase Name] — Complete
+  - [Key Output 1]
+  - [Key Output 2]
+  - [Duration / File Count / Other Metrics]
 ```
 
-整个管线完成时，输出完整总结。
+When the entire pipeline finishes, output a full summary.

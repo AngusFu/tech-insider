@@ -15,7 +15,7 @@ claude --plugin-dir .
 /plugin install source-code-book@source-code-book-marketplace
 
 # 在 Claude Code 中运行
-/source-code-book:start https://github.com/example/repo --title "Test Book"
+/source-code-book:make-book https://github.com/example/repo --title "Test Book"
 ```
 
 ## Plugin Structure
@@ -40,13 +40,13 @@ source-code-book-plugin/
 ## Adding a New Skill
 
 1. Create `skills/<skill-name>/SKILL.md`
-2. Add YAML frontmatter with `name`, `description`, `user-invocable`, `allowed-tools`
+2. Add YAML frontmatter with `name`, `description`, `user-invocable`
 3. Write actionable instructions in the body
 
 ## Adding a New Agent
 
 1. Create `agents/<agent-name>.md`
-2. Add YAML frontmatter with `name`, `description`, `tools`
+2. Add YAML frontmatter with `name`, `description`, `allowed-tools`
 3. Write the agent's system prompt in the body
 
 ## Adding a New Command

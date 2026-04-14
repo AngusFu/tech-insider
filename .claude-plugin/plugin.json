@@ -1,6 +1,6 @@
 {
   "name": "source-code-book",
-  "description": "源码深度解析技术书籍生成器 — 基于 Agent Teams 的出版级书籍管线，支持从克隆代码到终稿的全流程自动化",
+  "description": "Automated publication-grade deep source-code analysis book generator powered by Agent Teams",
   "version": "1.0.0",
   "author": {
     "name": "机器毛"
@@ -20,5 +20,15 @@
     "agent-teams",
     "publishing",
     "documentation"
+  ],
+  "skills": [
+    "book-pipeline",
+    "book-planner",
+    "book-writer-template",
+    "book-consistency-reviewer",
+    "book-proofreader"
+  ],
+  "commands": [
+    "make-book"
   ]
 }

@@ -20,17 +20,28 @@ For each `ch*.md` file:
 4. **Ending Sections**: Check for both "停下来想一想" and "可迁移的设计原则" headings
 5. **Decision Box Format**: Check for `> \*\*决策\*\*：` — should exist, no `<div>` HTML tags
 6. **Code Citations**: Count `file:line` patterns — should be ≥3
+7. **Mermaid Syntax Validation**:
+   - Extract each mermaid block (between ```mermaid and ```)
+   - Try rendering with `mmdc` if available: `mmdc -i block.mmd -o /dev/null 2>&1`
+   - If `mmdc` unavailable, run heuristic checks:
+     - Unbalanced parentheses, braces, brackets
+     - Missing arrow operators (`-->`, `<--`, `-- text -->`)
+     - Unclosed quotes in node labels
+     - `graph TD/LR` / `flowchart TD/LR` / `sequenceDiagram` / `stateDiagram-v2` / `classDiagram` — must have a valid directive on line 1
+     - For `sequenceDiagram`: each participant line must have `->>` or `-->>` or `->`
+     - For `graph`/`flowchart`: node definitions must use valid syntax (`id[label]`, `id(label)`, `id{label}`, etc.)
+   - Report each diagram as ✅ (valid), ⚠️ (heuristic warnings), or ❌ (syntax error)
 
 ### Output
 
-Write to `verification-status.md`:
+Write to `.work/verification-status.md`:
 
 ```markdown
 # Verification Status
 
-| Chapter | Mermaid | ASCII | Metaphor | Decisions | Reflect | Principles | Verdict |
-|---------|---------|-------|----------|-----------|---------|------------|---------|
-| ChXX    | N ✅    | 0     | ✅/❌    | ✅/❌     | ✅/❌   | ✅/❌      | PASS/FAIL |
+| Chapter | Mermaid | Mermaid Syntax | ASCII | Metaphor | Decisions | Reflect | Principles | Verdict |
+|---------|---------|---------------|-------|----------|-----------|---------|------------|---------|
+| ChXX    | N ✅    | ✅/⚠️/❌      | 0     | ✅/❌    | ✅/❌     | ✅/❌   | ✅/❌      | PASS/FAIL |
 
 ## Summary
 - Total chapters: N

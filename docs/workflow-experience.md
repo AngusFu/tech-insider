@@ -1,151 +1,151 @@
-# 源码深度解析书籍 — 工作流经验总结
+# Source Code Deep Analysis Book — Workflow Experience Summary
 
-> 基于 Hermes Agent 出版管线的实际经验
+> Based on real-world experience from the Hermes Agent publishing pipeline
 
-## 架构师 Review 意见
+## Architect Review Notes
 
-- **Agent Teams 架构合理** — 5 个 Writer 按 Part 划分，避免内容重叠
-- **三审三校分离** — 结构检查 vs 一致性 vs 可读性是三个独立维度
-- **风格指南前置** — 在写之前就统一术语，防止后期返工
-- **建议改进** — 增加"章节依赖图"在写之前确定交叉引用关系
-- **建议改进** — 统稿 agent 应该先收集报告再动手，而非边读边改
+- **Agent Teams architecture is sound** — 5 Writers divided by Part avoids content overlap
+- **Three reviews and proofreading passes are separated** — Structure checks, consistency, and readability are three independent dimensions
+- **Style guide upfront** — Unify terminology before writing to prevent late-stage rework
+- **Suggested improvement** — Add a "chapter dependency graph" before writing to establish cross-reference relationships
+- **Suggested improvement** — The consolidation agent should collect all reports first before acting, rather than reading and editing incrementally
 
-## 书籍主编 Review 意见
+## Editor-in-Chief Review Notes
 
-- **章节结构模板有效** — 开头隐喻 + Mermaid + 深潜 + 决策框 + 反思 + 原则
-- **设计决策框格式统一** — 决策/备选/权衡/理由是好的模式
-- **内容重合处理** — 主章节+交叉引用的策略正确，但需要在写之前就约定
-- **建议改进** — 增加"难度分级"标记，帮助读者判断章节难度
-- **建议改进** — "停下来想一想"的答案应该给 Editor-in-Chief 参考，不要删除
-- **建议改进** — 统稿时附录必须放在正文之后，这是一个容易拼错的细节
+- **Chapter structure template is effective** — Opening metaphor + Mermaid + deep dive + decision box + reflection + principles
+- **Unified design decision box format** — Decision / alternatives / trade-offs / rationale is a solid pattern
+- **Content overlap handling** — The home-chapter-plus-cross-reference strategy is correct but must be agreed upon before writing
+- **Suggested improvement** — Add "difficulty level" markers to help readers gauge chapter difficulty
+- **Suggested improvement** — Answers to "Stop and Think" questions should be kept for the Editor-in-Chief's reference, not deleted
+- **Suggested improvement** — Appendices must be placed after the main text during consolidation — an easy detail to get wrong
 
 ---
 
-## 1. 整体架构
+## 1. Overall Architecture
 
-### 正确的架构
-
-```
-Main Agent (协调器)
-├── book-planner → 制定大纲/风格指南/编辑管线
-├── 5 Writers (并行) → 撰写初稿
-├── 3 Reviewers (并行) → 初审+复审+验证
-├── 3 Proofreaders (并行) → 一校+二校+三校
-├── Cover Designer → 封面设计
-├── Preface Writer → 序言撰写
-├── Editor-in-Chief → 统稿
-└── Appendices Writer → 附录编写
-```
-
-### 关键纪律
-
-1. **Main Agent 永远不动手写章节** — 只负责协调、汇总、委派
-2. **能并行的必须并行** — 一校/二校/三校/封面/序言互不依赖，同时启动
-3. **长任务中间给进度** — 不能让 main agent 干等所有 subagent 跑完才汇报
-4. **写完就审，不要攒着** — 每个 writer 完成后立即启动 reviewer
-
-## 2. 三审三校
-
-### 三审（结构 + 一致性）
-
-| 审级 | 检查内容 | 自动化程度 |
-|------|---------|-----------|
-| 初审 | 章节结构、格式规范、源码准确性 | 半自动（grep + 人工验证） |
-| 复审 | 跨章一致性、术语统一、内容去重 | 手动（需要理解语义） |
-| 终审 | 全书质量、完整性、可读性 | 手动 |
-
-### 三校（文字 + 技术 + 可读性）
-
-| 校次 | 检查内容 | 自动化程度 |
-|------|---------|-----------|
-| 一校 | 错别字、标点、格式、术语 | 半自动（可用 grep 辅助） |
-| 二校 | 交叉引用、内容重合、设计决策矛盾 | 手动（需要跨章对比） |
-| 三校 | 通读、叙事连贯、节奏感、语气一致 | 手动（纯阅读体验） |
-
-### 经验教训
-
-- **三校应该并行启动** — 我们犯了串行等待的错误
-- **初审可以用自动化工具** — ASCII 检测、Mermaid 计数、结构检查都可以 grep
-- **复审必须在所有初稿完成后进行** — 需要全局视角
-- **三校报告应该包含优先级** — P0/P1/P2 让统稿有明确的修复顺序
-
-## 3. 风格一致性
-
-### 写之前必须创建的
-
-1. **STYLE_GUIDE.md** — 术语表、章节模板、禁止事项、内容重合映射
-2. **BOOK_PLAN.md** — 章节大纲、每章内容描述
-3. **EDITORIAL_PLAN.md** — 角色分工、管线阶段、进度
-
-### 最常见的风格问题
-
-| 问题 | 原因 | 解决 |
-|------|------|------|
-| ASCII 图 vs Mermaid | Writer 没注意 | verifier 自动检测，不通过就打回 |
-| 术语不一致 | 不同 Writer 用词不同 | STYLE_GUIDE.md 术语表，统稿时统一 |
-| 决策框格式不同 | 有的用 blockquote，有的用 HTML | 在 STYLE_GUIDE.md 明确格式，统稿时统一 |
-| 教程 vs 架构分析 | Writer 偏向写教程 | STYLE_GUIDE.md 禁止事项，reviewer 检查 |
-| 内容重复 | 概念没有明确主章节 | 内容重合映射表，写之前约定 |
-
-## 4. Agent Teams 最佳实践
-
-### Main Agent 的职责
-
-- 协调进度
-- 汇总报告
-- 委派任务
-- 向用户反馈
-- **不写章节、不审稿、不校对**
-
-### Writer 的独立性
-
-- 每个 Writer 只负责自己的章节
-- 收到 STYLE_GUIDE.md 和 BOOK_PLAN.md
-- 内容重合按映射表处理
-- 完成后自动 idle，等待 reviewer 反馈
-
-### Reviewer 的自动化
-
-- 结构检查可以用 grep 自动化
-- 代码引用需要实际验证
-- 术语一致性可以半自动检查
-- 报告格式标准化
-
-### Editor-in-Chief 的修复顺序
-
-- 先读所有报告（review + proofread + consistency）
-- 按 P0/P1/P2 优先级修复
-- P0 修完后再修 P1
-- 最后编译终稿
-
-## 5. 管线阶段依赖关系
+### Correct Architecture
 
 ```
-规划 (顺序)
-  ↓
-初稿 (5 writers 并行)
-  ↓
-三审 (初审+复审 可并行，终审在所有初审完成后)
-  ↓
-返工 (writers 根据 review 修改)
-  ↓
-验证 (verifier 自动检查)
-  ↓
-三校 (一校+二校+三校+封面+序言 全部并行)
-  ↓
-统稿 (Editor-in-Chief)
-  ↓
-附录 (Appendices Writer)
-  ↓
-终稿编译 (Appendix 必须在正文之后)
+Main Agent (Coordinator)
+├── book-planner → Outline / style guide / editorial pipeline
+├── 5 Writers (parallel) → First drafts
+├── 3 Reviewers (parallel) → Initial + re-review + verification
+├── 3 Proofreaders (parallel) → First pass + second pass + third pass
+├── Cover Designer → Cover design
+├── Preface Writer → Preface writing
+├── Editor-in-Chief → Consolidation
+└── Appendices Writer → Appendix composition
 ```
 
-## 6. 插件化后的改进点
+### Key Disciplines
 
-相比手动管线，插件可以：
+1. **Main Agent never writes chapters manually** — Only coordinates, summarizes, and delegates
+2. **Everything that can run in parallel must** — First pass, second pass, third pass, cover, and preface have no dependencies; launch simultaneously
+3. **Long tasks must report progress mid-flight** — The main agent should not wait idle for all subagents to finish before reporting
+4. **Review immediately after writing, don't batch** — Start a reviewer as soon as each writer completes
 
-1. **自动启动下一个阶段** — 不需要手动等结果再派 agent
-2. **进度自动反馈** — 每个阶段完成后自动通知用户
-3. **失败自动重试** — writer 返工后自动重新验证
-4. **经验内建** — STYLE_GUIDE.md 模板已包含最佳实践
-5. **可复用到任何项目** — 不只是 Hermes，任何开源代码都可以
+## 2. Three Reviews and Three Proofreading Passes
+
+### Three Reviews (Structure + Consistency)
+
+| Review Level | Checks | Automation Level |
+|--------------|--------|-----------------|
+| Initial review | Chapter structure, format compliance, source code accuracy | Semi-automatic (grep + manual verification) |
+| Re-review | Cross-chapter consistency, terminology unification, content deduplication | Manual (requires semantic understanding) |
+| Final review | Overall book quality, completeness, readability | Manual |
+
+### Three Proofreading Passes (Text + Technical + Readability)
+
+| Pass | Checks | Automation Level |
+|------|--------|-----------------|
+| First pass | Typos, punctuation, formatting, terminology | Semi-automatic (grep-assisted) |
+| Second pass | Cross-references, content overlap, design decision contradictions | Manual (requires cross-chapter comparison) |
+| Third pass | Read-through, narrative coherence, pacing, tone consistency | Manual (pure reading experience) |
+
+### Lessons Learned
+
+- **All proofreading passes should launch in parallel** — We made the mistake of waiting serially
+- **Initial review can be automated** — ASCII detection, Mermaid counting, structure checks can all use grep
+- **Re-review must wait until all first drafts are complete** — Requires a global view
+- **Proofreading reports should include priorities** — P0/P1/P2 gives consolidation a clear fix order
+
+## 3. Style Consistency
+
+### Must Create Before Writing
+
+1. **STYLE_GUIDE.md** — Glossary, chapter template, prohibitions, content overlap mapping
+2. **BOOK_PLAN.md** — Chapter outline, per-chapter content description
+3. **EDITORIAL_PLAN.md** — Role assignments, pipeline stages, progress tracking
+
+### Most Common Style Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| ASCII art vs Mermaid | Writer did not follow guidelines | Verifier auto-detects; fails if not compliant |
+| Inconsistent terminology | Different Writers use different words | STYLE_GUIDE.md glossary; unify during consolidation |
+| Decision box format varies | Some use blockquote, some use HTML | Specify format in STYLE_GUIDE.md; unify during consolidation |
+| Tutorial vs architecture analysis | Writer leans toward tutorial style | Prohibitions in STYLE_GUIDE.md; reviewer checks |
+| Content duplication | No clear home chapter for concepts | Content overlap mapping table; agree before writing |
+
+## 4. Agent Teams Best Practices
+
+### Main Agent Responsibilities
+
+- Coordinate progress
+- Summarize reports
+- Delegate tasks
+- Report to user
+- **Does not write chapters, review, or proofread**
+
+### Writer Independence
+
+- Each Writer is responsible only for their assigned chapters
+- Receives STYLE_GUIDE.md and BOOK_PLAN.md
+- Content overlap handled per mapping table
+- Goes idle automatically after completion, awaiting reviewer feedback
+
+### Reviewer Automation
+
+- Structure checks can be automated with grep
+- Code references require actual verification
+- Terminology consistency can be semi-automatically checked
+- Report format should be standardized
+
+### Editor-in-Chief Fix Order
+
+- Read all reports first (review + proofread + consistency)
+- Fix in P0/P1/P2 priority order
+- Complete P0 fixes before moving to P1
+- Compile final manuscript last
+
+## 5. Pipeline Stage Dependencies
+
+```
+Planning (sequential)
+  ↓
+First Draft (5 writers in parallel)
+  ↓
+Three Reviews (initial + re-review in parallel; final review after all initial reviews complete)
+  ↓
+Rework (writers revise based on review feedback)
+  ↓
+Verification (verifier automated checks)
+  ↓
+Three Proofreading Passes (first + second + third + cover + preface — all parallel)
+  ↓
+Consolidation (Editor-in-Chief)
+  ↓
+Appendices (Appendices Writer)
+  ↓
+Final Manuscript Compilation (appendices must come after main text)
+```
+
+## 6. Improvements After Plugin-ization
+
+Compared to a manual pipeline, the plugin provides:
+
+1. **Automatic stage progression** — No need to manually wait for results before dispatching the next agent
+2. **Automatic progress feedback** — User notified automatically at each stage completion
+3. **Automatic retry on failure** — Writer rework triggers automatic re-verification
+4. **Built-in experience** — STYLE_GUIDE.md template already contains best practices
+5. **Reusable for any project** — Not limited to Hermes; works with any open-source codebase
