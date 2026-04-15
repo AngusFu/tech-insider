@@ -417,7 +417,14 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 2. Spawn 1 **book-final-reviewer** teammate. Follow Shutdown Pattern.
 3. **Verdict handling**:
    - **PASS**: Proceed to Phase 11 (Delivery)
-   - **FAIL**: List all blockers to user with severity ratings. Fix P0 issues before delivery. If user confirms, proceed to Phase 11 despite FAIL.
+   - **FAIL**:
+     1. List all blockers to user with severity ratings (P0/P1/P2).
+     2. **Fixable issues** → route back to the appropriate Phase 10 pass:
+        - ASCII art, decision box format, missing structure → re-run Phase 10 Pass 1 (P0 fixes)
+        - Content overlap, cross-refs, data consistency → re-run Phase 10 Pass 2 (P1 fixes)
+        - Terminology, transitions → re-run Phase 10 Pass 3 (P2 fixes)
+     3. After the appropriate Phase 10 pass completes, re-run Phase 10 Pass 5 (compile-final) to regenerate `book-final.md`, then re-run Phase 10.5 (final review).
+     4. **Maximum 1 re-fix round** — if Phase 10.5 still FAILs after one fix cycle, present issues to user and let them decide: fix manually, or proceed to delivery despite FAIL.
 
 ### Phase 11: Delivery
 
@@ -435,6 +442,7 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 - **Outline** → analysis insufficient; request more information
 - **Review FAIL** → rework, max 2 rounds
 - **Verification FAIL** → list specific issues; continue after user confirmation
+- **Final Review (Phase 10.5) FAIL** → route back to appropriate Phase 10 pass; max 1 re-fix round; if still FAIL, present to user
 - **Synthesis** → record all P0/P1/P2 fixes; display in final report
 
 ## Progress Reporting

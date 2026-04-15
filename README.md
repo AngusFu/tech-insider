@@ -126,6 +126,8 @@ flowchart TD
     S7 -->|Re-initial review| S6
     S7 -->|Exceeds 2 rounds| S6
     S8 --> S9 --> S95 --> S10 --> S105 --> S11
+    S105 -->|Needs fixes (max 1 round)| S10
+    S105 -->|Pass or user override| S11
 ```
 
 ## Chapter Structure Template
