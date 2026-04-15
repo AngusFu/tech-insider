@@ -42,7 +42,7 @@ Scope: Surface-level text errors
 
 ### Output
 
-Write to `.work/proofread-1.md`:
+Write to the output file specified in the Invocation Mode table above. Format:
 ```markdown
 # First Pass Report — Text Proofreading
 ## Issues Found
@@ -64,7 +64,7 @@ Scope: Technical accuracy and reference relationships
 
 ### Output
 
-Write to `.work/proofread-2.md`.
+Write to the output file specified in the Invocation Mode table above.
 
 ## Third Pass: Read-Through and Readability
 
@@ -87,4 +87,4 @@ Narrative coherence / Chapter transitions / Pacing / Tone consistency / Overall 
 
 ### Output
 
-Write to `.work/proofread-3.md`.
+Write to the output file specified in the Invocation Mode table above.
