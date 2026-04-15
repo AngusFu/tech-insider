@@ -333,14 +333,15 @@ Input: all chapter files `.work/chapters/ch*.md` + STYLE_GUIDE.md + TOPIC.md + B
 Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md` + `preface.md`
 ```
 
-1. Create 4 tasks in the shared task list:
-   - Task 1: "First proofread pass — text proofreading: typos, punctuation, terminology, Mermaid syntax. Write `.work/proofread-1.md`."
-   - Task 2: "Second proofread pass — cross-reference validation. Write `.work/proofread-2.md`."
-   - Task 3: "Third proofread pass — readability read-through. Write `.work/proofread-3.md`."
-   - Task 4: "Write preface based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md. Write `preface.md`."
-2. Spawn 4 teammates: 3 **book-proofreader** (each will auto-claim one proofread task), 1 **book-preface-writer** (will auto-claim the preface task).
-3. Each teammate auto-claims, works, goes idle → send shutdown_request to each, wait for confirmations.
-4. Report to the user when all are complete
+**4 different teammates, 4 different tasks — spawn each explicitly with mode, do NOT use auto-claim for this phase.**
+
+1. Spawn 4 teammates with explicit task instructions:
+   - **book-proofreader**: prompt = "Execute `first-proofread` mode only: text proofreading. Write `.work/proofread-1.md`."
+   - **book-proofreader**: prompt = "Execute `second-proofread` mode only: cross-reference validation. Write `.work/proofread-2.md`."
+   - **book-proofreader**: prompt = "Execute `readability-pass` mode only: read-through. Write `.work/proofread-3.md`."
+   - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md."
+2. All 4 work in parallel. When each goes idle, send shutdown_request, wait for confirmations.
+3. Report to the user when all are complete
 
 ### Phase 9.5: Preface Review
 
