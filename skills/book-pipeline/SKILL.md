@@ -450,7 +450,7 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 1. Create task: "Review `book-final.md`: ASCII art residue (grep for box-drawing chars), structural completeness (metaphor, Mermaid, reflection questions, principles per chapter), decision box format (blockquote only), Mermaid syntax validation, cross-reference integrity, overall quality (word count anomalies, TODOs). Write `.work/final-review.md` with PASS/FAIL verdict."
 2. Spawn 1 **book-final-reviewer** teammate. Follow Shutdown Pattern.
 3. **Verdict handling**:
-   - **PASS**: Proceed to Phase 11 (Delivery)
+   - **PASS**: Proceed to Phase 10.6 (External Review)
    - **FAIL**:
      1. List all blockers to user with severity ratings (P0/P1/P2).
      2. **Fixable issues** → route back to the appropriate Phase 10 pass:
@@ -459,6 +459,35 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
         - Terminology, transitions → re-run Phase 10 Pass 3 (P2 fixes)
      3. After the appropriate Phase 10 pass completes, re-run Phase 10 Pass 5 (compile-final) to regenerate `book-final.md`, then re-run Phase 10.5 (final review).
      4. **Maximum 1 re-fix round** — if Phase 10.5 still FAILs after one fix cycle, present issues to user and let them decide: fix manually, or proceed to delivery despite FAIL.
+
+### Phase 10.6: External Review (Compilation Integrity — Loop)
+
+```
+Input: book-final.md + BOOK_PLAN.md
+Output: `.work/external-review.md` (compilation integrity verdict: PASS/FAIL)
+```
+
+**After Phase 10.5 quality gate passes, this phase checks the compiled book as a complete publication — not per-chapter quality, but whole-book integrity.**
+
+1. Create task: "Review `book-final.md` as a complete compiled manuscript against `BOOK_PLAN.md`. Check:
+   - **Chapter completeness**: All chapters from BOOK_PLAN.md are present, none missing
+   - **Chapter order**: Chapters appear in correct sequence (ch01 → ch02 → ... → chN)
+   - **No duplicates**: No chapter appears twice in the manuscript
+   - **No empty sections**: Every chapter has content (not just headings or placeholders)
+   - **Format consistency**: Heading levels are uniform across chapters, numbering is sequential
+   - **Layout consistency**: Spacing, separator lines (---), and section breaks are uniform
+   - **Preface placement**: Preface appears before the table of contents
+   - **Appendix placement**: All 4 appendices (A-D) appear after the main content
+   - **Table of contents accuracy**: TOC matches actual chapter headings
+   Write `.work/external-review.md` with PASS/FAIL verdict."
+2. Spawn 1 **book-chapter-reviewer** teammate. Follow Shutdown Pattern.
+3. **Verdict handling**:
+   - **PASS**: Proceed to Phase 11 (Delivery)
+   - **FAIL**:
+     1. List all compilation issues to user.
+     2. **Route back to Phase 10 Pass 5 (compile-final)** to regenerate `book-final.md` with corrections.
+     3. After re-compile, re-run Phase 10.5 (final review) → then re-run Phase 10.6 (external review).
+     4. **Maximum 1 loop** — if Phase 10.6 still FAILs after one re-compile cycle, present issues to user for manual intervention.
 
 ### Phase 11: Delivery
 
@@ -477,6 +506,7 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 - **Review FAIL** → rework, max 2 rounds
 - **Verification FAIL** → list specific issues; continue after user confirmation
 - **Final Review (Phase 10.5) FAIL** → route back to appropriate Phase 10 pass; max 1 re-fix round; if still FAIL, present to user
+- **External Review (Phase 10.6) FAIL** → route back to Phase 10 Pass 5 (compile-final); max 1 loop; if still FAIL, present to user
 - **Synthesis** → record all P0/P1/P2 fixes; display in final report
 
 ## Progress Reporting

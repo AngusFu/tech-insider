@@ -118,6 +118,7 @@ flowchart TD
     S95["9.5 Preface Review<br/>Accuracy, tone, scope check"]
     S10["10. Synthesis<br/>P0 → P1 → P2 → Appendices → Compile"]
     S105["10.5 Final Review<br/>Quality gate on compiled book"]
+    S106["10.6 External Review<br/>Compilation integrity: order, completeness, duplicates, layout"]
     S11["11. Delivery"]
 
     S1 --> S2 --> S3 --> S4 --> S45 --> S5 --> S6
@@ -125,9 +126,10 @@ flowchart TD
     S6 -->|Ready for publication| S8
     S7 -->|Re-initial review| S6
     S7 -->|Exceeds 2 rounds| S6
-    S8 --> S9 --> S95 --> S10 --> S105 --> S11
+    S8 --> S9 --> S95 --> S10 --> S105 --> S106 --> S11
     S105 -->|Needs fixes (max 1 round)| S10
     S105 -->|Pass or user override| S11
+    S106 -->|Compilation errors (max 1 loop)| S10
 ```
 
 ## Chapter Structure Template

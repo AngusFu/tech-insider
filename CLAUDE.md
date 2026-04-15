@@ -71,6 +71,7 @@ Phase 9: Proofreads + Preface      → 3 proofreads (parallel) + preface writing
 Phase 9.5: Preface Review          → accuracy/tone/scope check
 Phase 10: Synthesis (5 passes)     → P0 fixes → P1 fixes → P2 fixes → appendices (1 teammate) → compile
 Phase 10.5: Final Review           → book-final.md quality gate (ASCII residue, structure, cross-refs)
+Phase 10.6: External Review        → compilation integrity (chapter order, completeness, duplicates, layout, TOC)
 Phase 11: Delivery                 → stats + files
 ```
 
