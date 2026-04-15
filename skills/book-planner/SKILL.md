@@ -68,6 +68,7 @@ Create `BOOK_PLAN.md` containing:
 - Part-divided chapter outline (12-18 chapters, dynamically determined by codebase complexity, respecting `--chapters` hint if provided)
 - For each chapter:
   - Chapter title and slug (e.g., `ch01-project-overview`)
+  - **Theme/Lens** — the analytical lens for this chapter (e.g., "narrative foundation", "core architecture deep dive", "subsystem internals", "production engineering")
   - 2-3 sentence description of content
   - Key source files to analyze (with actual file paths)
   - Content overlap rules (what NOT to cover, where to cross-reference)
@@ -77,6 +78,7 @@ Create `BOOK_PLAN.md` containing:
 ```markdown
 ### Chapter XX: Title
 - **Part**: 1
+- **Theme**: narrative foundation
 - **Description**: ...
 - **Key files**: src/core/main.py
 - **Do not cover**: (cross-reference to Chapter YY instead)

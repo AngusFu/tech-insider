@@ -55,6 +55,17 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 
 ## Writing Rules
 
+### Chapter Theme Adaptation
+
+Each chapter has a **Theme** in `BOOK_PLAN.md`. Adapt your writing approach accordingly:
+
+| Theme | Tone | Code Density | Focus |
+|-------|------|-------------|-------|
+| **narrative foundation** | Storytelling, accessible, sets context | Low — use diagrams and high-level analysis | Why this project exists, what problem it solves, architectural overview |
+| **core architecture deep dive** | Rigorous, analytical, technical | High — deep code analysis, line-by-line where needed | How the main loop/engine works, key abstractions, data flow |
+| **subsystem internals** | Practical, component-focused | Medium — focus on interfaces and interactions | How subsystems interact, extensibility patterns, plugin architecture |
+| **production engineering** | Pragmatic, operational | Medium — real-world configs, deployment scripts | Production concerns, trade-offs, scaling, testing, CI/CD |
+
 ### Code Citations
 - Format: `file/path:line-range`, e.g. `src/core/engine.ts:142-156`
 - Code blocks must not exceed 30 lines; include only the critical portions

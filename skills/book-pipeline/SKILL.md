@@ -202,13 +202,22 @@ Output: chapter files `.work/chapters/chXX-*.md`
 
 1. Create `.work/chapters/` directory for draft chapters
 2. **Batch 1 (Foundation chapters)**:
-   - Create task for foundation chapters with details from `BOOK_PLAN.md` (titles, descriptions, key files), `DEPENDENCIES.md` (boundaries), `STYLE_GUIDE.md` (conventions), `CODE_INDEX.md` (code summaries)
+   - Create task for foundation chapters with details from `BOOK_PLAN.md` (titles, descriptions, key files, chapter theme/lens), `DEPENDENCIES.md` (boundaries), `STYLE_GUIDE.md` (conventions), `CODE_INDEX.md` (code summaries)
+   - Task description must include: "These are foundation chapters — focus on narrative clarity, project motivation, architectural overview, and why this codebase matters. Lower code density, higher readability. Set the tone for the entire book."
    - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set the book's tone — exemplary structure compliance required. Pick up the task from the shared task list. When done, shut down."
    - Wait for completion → shutdown → confirm
 3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone. If acceptable, proceed to Batch 2. If issues found, list them for the user to decide whether to fix before Batch 2.
 4. **Batch 2 (All remaining chapters)**:
-   - Create tasks — one per remaining chapter, each with details from `BOOK_PLAN.md`, `DEPENDENCIES.md`, `STYLE_GUIDE.md`, `CODE_INDEX.md`, plus path to Batch 1 output as style reference
-   - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions. Use Batch 1 output as style reference. When no tasks remain, shut down."
+   - Create tasks — one per remaining chapter. Each task must include:
+     - Chapter title, description, key files from `BOOK_PLAN.md`
+     - Chapter theme/lens (from BOOK_PLAN.md or inferred): e.g., "core architecture deep dive", "subsystem internals", "engineering practices/production concerns"
+     - Style guidance per chapter type:
+       - Core architecture chapters: high code density, deep technical analysis, design decisions emphasized
+       - Subsystem/tools chapters: practical focus, how components interact, extensibility patterns
+       - Integration/deployment chapters: production concerns, operational realities, trade-offs
+     - `DEPENDENCIES.md` boundaries, `STYLE_GUIDE.md` conventions, `CODE_INDEX.md` summaries
+     - Path to Batch 1 output as style reference
+   - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions, adapting tone and code density to the chapter's theme/lens as specified in the task. Use Batch 1 output as style reference. When no tasks remain, shut down."
    - Each writer auto-claims, writes, auto-claims next — repeat until done
    - Writers go idle → send shutdown_request, wait for confirmation
 5. Collect results on completion; show progress to the user
