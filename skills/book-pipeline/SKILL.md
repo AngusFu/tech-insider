@@ -468,8 +468,12 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
         - ASCII art, decision box format, missing structure → re-run Phase 10 Pass 1 (P0 fixes)
         - Content overlap, cross-refs, data consistency → re-run Phase 10 Pass 2 (P1 fixes)
         - Terminology, transitions → re-run Phase 10 Pass 3 (P2 fixes)
-     3. After the appropriate Phase 10 pass completes, re-run Phase 10 Pass 5 (compile-final) to regenerate `book-final.md`, then re-run Phase 10.5 (final review).
-     4. **Maximum 1 re-fix round** — if Phase 10.5 still FAILs after one fix cycle, present issues to user and let them decide: fix manually, or proceed to delivery despite FAIL.
+     3. **After the fix pass completes, you MUST also re-run the remaining Phase 10 passes in sequence**:
+        - If you ran Pass 1: also run Pass 2 → Pass 3 → Pass 4 → Pass 5 (compile-final)
+        - If you ran Pass 2: also run Pass 3 → Pass 4 → Pass 5 (compile-final)
+        - If you ran Pass 3: also run Pass 4 → Pass 5 (compile-final)
+     4. After Pass 5 regenerates `book-final.md`, re-run Phase 10.5 (final review).
+     5. **Maximum 1 re-fix round** — if Phase 10.5 still FAILs, present issues to user for manual intervention.
 
 ### Phase 10.6: External Review (Compilation Integrity — Loop)
 
@@ -496,8 +500,8 @@ Output: `.work/external-review.md` (compilation integrity verdict: PASS/FAIL)
    - **PASS**: Proceed to Phase 11 (Delivery)
    - **FAIL**:
      1. List all compilation issues to user.
-     2. **Route back to Phase 10 Pass 5 (compile-final)** to regenerate `book-final.md` with corrections.
-     3. After re-compile, re-run Phase 10.5 (final review) → then re-run Phase 10.6 (external review).
+     2. **Route back to Phase 10 Pass 5 (compile-final)** to regenerate `book-final.md` with corrections. The lead provides the external review report as input so the editor-in-chief knows what to fix.
+     3. **After re-compile, re-run the full review chain**: Phase 10.5 (final review) → Phase 10.6 (external review). Both must PASS before proceeding to delivery.
      4. **Maximum 1 loop** — if Phase 10.6 still FAILs after one re-compile cycle, present issues to user for manual intervention.
 
 ### Phase 11: Delivery
