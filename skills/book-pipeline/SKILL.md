@@ -26,7 +26,9 @@ Between every phase that uses Agent Teams:
 2. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
 3. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
 4. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
-5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done. **The lead does NOT use sleep, Monitor, or any polling mechanism — just wait for mailbox messages.**
+5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
+   - **CRITICAL: Polling blocks the mailbox.** If the lead uses `sleep`, `Monitor`, or any polling mechanism, incoming mailbox messages from teammates cannot be delivered — creating a DEADLOCK. The lead will never see the completion message because it's busy polling.
+   - **The lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let the system deliver teammate messages to your mailbox.
 6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE `shutdown_request` to each, wait for confirmations.
 
 **Lead's only jobs: shutdown old teammates, create tasks, spawn ALL new teammates in parallel, wait for completion, shutdown. Teammates self-claim and self-coordinate.**
