@@ -20,7 +20,7 @@ This plugin packages that entire workflow into a reusable Claude Code plugin.
 
 ```bash
 # Add marketplace (if using a Git repository)
-/plugin marketplace add https://github.com/example/tech-insider.git
+/plugin marketplace add https://github.com/AngusFu/tech-insider.git
 
 # Install the plugin
 /plugin install tech-insider@tech-insider-marketplace

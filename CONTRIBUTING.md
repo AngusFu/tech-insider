@@ -4,7 +4,7 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/example/tech-insider.git
+git clone https://github.com/AngusFu/tech-insider.git
 cd tech-insider
 
 # Option 1: Local testing
@@ -15,7 +15,7 @@ claude --plugin-dir .
 /plugin install tech-insider@tech-insider-marketplace
 
 # Run in Claude Code
-/tech-insider:make-book https://github.com/example/repo --title "Test Book"
+/tech-insider:make-book https://github.com/AngusFu/tech-insider --title "Test Book"
 ```
 
 ## Plugin Structure
