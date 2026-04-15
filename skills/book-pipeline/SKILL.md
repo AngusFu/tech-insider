@@ -26,7 +26,7 @@ Between every phase that uses Agent Teams:
 2. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
 3. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
 4. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
-5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
+5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done. **The lead does NOT use sleep, Monitor, or any polling mechanism — just wait for mailbox messages.**
 6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE `shutdown_request` to each, wait for confirmations.
 
 **Lead's only jobs: shutdown old teammates, create tasks, spawn ALL new teammates in parallel, wait for completion, shutdown. Teammates self-claim and self-coordinate.**
@@ -43,7 +43,7 @@ Between every phase that uses Agent Teams:
 - **NEVER** create a second team — ONE team throughout the pipeline
 - **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files
 - **NEVER** fall back to subagents (`Agent` without `team_name`)
-- **NEVER** use `sleep` or any sleep loop (e.g., `sleep 30 && stat file.md`) to check teammate progress — teammates auto-message lead via mailbox on completion. The lead does NOT need to poll for files.
+- **NEVER** use `sleep`, `sleep` loops, or `Monitor` to check teammate progress — teammates auto-message lead via mailbox on completion. The lead does NOT need to poll, wait on files, or monitor output. **Just wait for the mailbox message.**
 - **NEVER** poll for output files — if a teammate has work to do, they will message you. Just wait.
 - **NEVER** rush shutdown — send ONE shutdown_request per teammate, then WAIT. The system takes time to process after approval. Do NOT send repeated shutdowns. Do NOT do the teammate's work yourself while waiting.
 
