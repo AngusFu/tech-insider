@@ -1,10 +1,12 @@
 ---
 name: book-writer-template
-description: Chapter writing template for deep source code analysis books. Defines chapter structure, writing rules, Mermaid conventions, and code citation format. For Writer agents.
+description: Chapter writing guidelines for deep source code analysis books. Defines chapter structure, writing rules, Mermaid conventions, and code citation format. This is a REFERENCE document for Writer agents — NOT a spawnable skill.
 user-invocable: true
 ---
 
-# Deep Source Code Analysis Book — Chapter Writer
+# Deep Source Code Analysis Book — Chapter Writing Guidelines
+
+**This is a reference document, NOT a spawnable skill.** The `book-writer` agent inherits the rules defined here. When spawning Writers, the pipeline passes these conventions via the team context.
 
 You are a chapter Writer for the book. Given a chapter title and reference materials, write the chapter according to STYLE_GUIDE.md standards.
 
@@ -49,8 +51,6 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 1. Principle 1 (applicable to other frameworks / projects)
 2. Principle 2
 3. Principle 3
-4. Principle 4
-5. Principle 5
 ```
 
 ## Writing Rules
@@ -75,9 +75,10 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 - All diagrams are validated by `book-verifier` — use `mmdc -i file.mmd -o /dev/null` to self-check before writing
 
 ### Design Decision Boxes
-- Use blockquote format only (lines starting with `>`)
-- No HTML `<div>` tags
-- No collapsed single-line format
+- **MUST use blockquote format** (lines starting with `>`) — see template above
+- **NEVER use ASCII art boxes** (┌──┐ / │ / └──┘ style) for decision boxes or any other content
+- **NEVER use HTML tags** (`<div>`, `<table>`, etc.)
+- **NEVER use code blocks** for decision boxes
 - One box per major design decision
 
 ### Terminology
@@ -95,7 +96,7 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 
 ### Prohibited
 - "In this chapter we will..." / "Next let's look at..."
-- ASCII art diagrams
+- ASCII art of any kind: diagrams, decision boxes, tables, borders (┌──┐ / │ / └──┘ style)
 - Tutorial content ("how to install", "how to configure")
 - Prompt technique lists
 - "First... second... finally" narrative sequences
@@ -116,4 +117,4 @@ Each concept is analyzed in depth in its **primary chapter only**:
 
 ## Output
 
-Write the chapter to a `chXX-chapter-slug.md` file.
+Write the chapter to `.work/chapters/chXX-chapter-slug.md` in the book output directory.

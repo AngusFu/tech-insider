@@ -32,18 +32,14 @@ tech-insider/
 │   ├── book-pipeline/SKILL.md   # Pipeline orchestration — full flow, parallel subagents
 │   ├── book-planner/SKILL.md    # Planner: analyze codebase, draft outline, style guide
 │   ├── book-writer-template/SKILL.md  # Writer template: chapter structure, writing rules
-│   ├── book_consistency-reviewer/SKILL.md  # Cross-chapter consistency review
+│   ├── book-consistency-reviewer/SKILL.md  # Cross-chapter consistency review
 │   └── book-proofreader/SKILL.md # Three-pass proofreading (first/second/readability modes)
 ├── agents/
-│   ├── book-planner.md           # Planner Agent (dynamic chapter generation)
-│   ├── book-writer-foundation.md # Writer: Foundation chapters (1-3)
-│   ├── book-writer-core-loop.md  # Writer: Core Loop chapters
-│   ├── book-writer-core-system.md# Writer: Core System chapters
-│   ├── book-writer-tools.md      # Writer: Tools / Subsystem chapters
-│   ├── book-writer-integration.md# Writer: Integration & Engineering chapters
+│   ├── book-writer.md          # Generic Writer: any chapter type, assigned from BOOK_PLAN.md
 │   ├── book-chapter-reviewer.md  # Structure review (initial review)
 │   ├── book-technical-reviewer.md# Technical fact-checking against source code
 │   ├── book-verifier.md          # Automated structure + Mermaid verification
+│   ├── book-final-reviewer.md    # Final review of compiled book (Phase 10.5)
 │   ├── book-editor-in-chief.md   # Editor-in-Chief: P0/P1/P2 fixes + final compilation
 │   └── book-preface-writer.md    # Preface writing
 ├── commands/
@@ -65,15 +61,16 @@ tech-insider/
 Phase 1: Clone + Analyze          → metrics, language distribution
 Phase 2: Topic Selection           → TOPIC.md (worth writing?)
 Phase 3: Outline                   → BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
-Phase 4: Pre-Writing Coordination  → DEPENDENCIES.md (chapter boundaries)
-Phase 4.5: Code Index              → CODE_INDEX.md (pre-computed code summary, cuts tokens 50%+)
+Phase 4: Pre-Writing Coordination  → DEPENDENCIES.md (spawn planner teammate)
+Phase 4.5: Code Index              → CODE_INDEX.md (spawn planner teammate)
 Phase 5: First Draft (staged)      → foundation writer first, then 4 parallel
 Phase 6: Three Reviews             → initial + technical + cross-chapter + final verdict
 Phase 7: Rework                    → max 2 rounds
 Phase 8: Verification              → automated checks + Mermaid validation
 Phase 9: Proofreads + Preface      → 3 proofreads (parallel) + preface writing
 Phase 9.5: Preface Review          → accuracy/tone/scope check
-Phase 10: Synthesis (3 passes)     → P0 fixes → P1 fixes → P2 + compilation → book-final.md
+Phase 10: Synthesis (5 passes)     → P0 fixes → P1 fixes → P2 fixes → appendices (1 teammate) → compile
+Phase 10.5: Final Review           → book-final.md quality gate (ASCII residue, structure, cross-refs)
 Phase 11: Delivery                 → stats + files
 ```
 
@@ -86,14 +83,31 @@ All intermediate files go in `.work/` directory:
 - `verification-status.md` — automated check results
 - `proofread-1/2/3.md` — three proofreading reports
 - `preface-review.md` — preface review
+- `review-consistency.md` — cross-chapter consistency (consolidated from per-Part reports)
 - `final-review-verdict.md` — go/no-go decision
 
 ## Pitfalls & Lessons Learned
 
+### Team Size Hard Limit — Max 6
+**Rule**: Team size MUST NOT exceed 6 active teammates at any time.
+**Reviewer pattern**: Phases 6a/6b/6c/7 use exactly 4 reviewer teammates maximum regardless of chapter/Part count. Each processes multiple chapters serially via the shared task list.
+**Other phases**: Pipeline (lead) manages `.work/team-queue.md`. Write all pending assignments, spawn up to 6, and when a teammate completes and shuts down, onboard the next queued one. Do NOT manually split into batches.
+
+### Chapter Output Path
+All chapters go to `.work/chapters/chXX-*.md`, NOT the book root. Writers, reviewers, and pipeline all use this path.
+
 ### Multi-Skill Mode Selection
 **Problem**: `book-proofreader` had all three proofreading passes in one SKILL.md with no mode selection — all three would run every time, overwriting each other's output.
-**Fix**: Added explicit invocation mode table (`first-proofread` / `second-proofread` / `readability-pass`) at the top of the skill. Pipeline must pass mode context when invoking.
+**Fix**: Added explicit invocation mode table at the top of the skill. Pipeline must pass mode context when invoking.
 
+### Editor-in-Chief Chunked Mode Selection
+**Problem**: Pipeline calls editor-in-chief 3 times (P0/P1/P2), but agent had no mode selection — would do all 3 passes every time.
+**Fix**: Added mode table (`p0-fix` / `p1-fix` / `p2-fixes` / `compile-final`) and "read all reports first, do not incremental edit" discipline. Phase 10 now has 5 passes (P0 → P1 → P2 → appendices parallel → compile) instead of 3.
+
+### Consistency Review Split by Part
+Phase 6c spawns up to 4 **book-consistency-reviewer** teammates (not one for all chapters, not one per Part). Each reviewer handles their assigned Part, picks up next Part if finishes early. Pipeline consolidates part reports into `.work/review-consistency.md`.
+
+### Re-entrancy Check
 ### Agent `.work/` Paths Are Contracts, Not Hacks
 Paths like `.work/proofread-1.md` look "hardcoded" but they are **inter-agent contracts** — all agents (proofreader, editor-in-chief, pipeline) agree on these canonical locations. Don't try to make them dynamic; fix the invocation logic instead.
 
@@ -107,7 +121,7 @@ Paths like `.work/proofread-1.md` look "hardcoded" but they are **inter-agent co
 The pipeline orchestrator (main agent) only coordinates, delegates, and reports. All writing, reviewing, and proofreading is delegated to subagents. If main starts writing chapters, context window explodes.
 
 ### Staged Writer Launch
-Foundation writer goes first (sets tone). After style checkpoint, remaining 4 writers launch in parallel with Batch 1 output as reference.
+Foundation chapters go first (set tone). After style checkpoint, remaining chapters split among up to 3 generic writers in parallel with Batch 1 output as reference.
 
 ### Mermaid Is the Only Diagram Choice
 No ASCII art allowed. All architecture diagrams must be Mermaid. Verified by `book-verifier` using `mmdc -i file.mmd -o /dev/null`.
@@ -116,7 +130,13 @@ No ASCII art allowed. All architecture diagrams must be Mermaid. Verified by `bo
 Writers and reviewers query the pre-computed index instead of reading raw source. Drill into source only for specific citations.
 
 ### Chunked Synthesis
-Phase 10 processes in 3 separate passes (P0 → P1 → P2) to avoid context-window saturation. Each pass launches a fresh Editor-in-Chief agent.
+Phase 10 processes in 5 sequential passes: P0 fixes → P1 fixes → P2 fixes → appendices (4 teammates parallel) → final compile. Each pass launches a fresh team.
+
+### Generic Writer Agent
+Only 1 `book-writer.md` agent needed. Chapter assignments come from `BOOK_PLAN.md` at runtime. Phase 5 splits into Batch 1 (1 writer, foundation chapters) + Batch 2 (up to 3 writers, remaining chapters). Phase 7 rework spawns up to 4 generic writers for FAIL chapters.
 
 ### Proofreading Must Be Parallel
 All 3 proofreading passes + preface writing have no inter-dependencies — launch simultaneously, not sequentially.
+
+### Phase 9.5 Preface Review
+Spawn a book-chapter-reviewer teammate to review the preface against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md before Phase 10.

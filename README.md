@@ -6,7 +6,7 @@ An automated, publication-grade technical book pipeline powered by Agent Teams. 
 
 This plugin was born from a real publishing project: using Claude Code's Agent Teams model, we produced a 67,000-word, 16-chapter, 4-appendix deep analysis book for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT). The process included:
 
-- 5 Writers writing in parallel
+- Up to 4 generic Writers writing in parallel (staged: 1 first, then up to 3)
 - 4 review rounds (initial chapter-by-chapter structure + technical fact-checking + re-review for cross-chapter consistency + final review for overall quality)
 - 3 proofreading passes (first pass: text; second pass: cross-references; third pass: readability read-through)
 - 1 Editor-in-Chief for final consolidation
@@ -65,11 +65,7 @@ tech-insider/
 │   └── book-pipeline/           # Pipeline orchestration: full flow + parallel subagents
 ├── agents/
 │   ├── book-planner.md            # Planner Agent (general, dynamically generates chapters)
-│   ├── book-writer-foundation.md  # Writer: Foundation chapters (first 2-3)
-│   ├── book-writer-core-loop.md   # Writer: Core Loop chapters
-│   ├── book-writer-core-system.md # Writer: Core System chapters
-│   ├── book-writer-tools.md       # Writer: Tools / Subsystem chapters
-│   ├── book-writer-integration.md # Writer: Integration & Engineering chapters
+│   ├── book-writer.md             # Generic Writer: any chapter type, assigned from BOOK_PLAN.md
 │   ├── book-chapter-reviewer.md   # Chapter-by-chapter structure review (initial review)
 │   ├── book-technical-reviewer.md # Technical fact-checking (code logic / architecture / data validation)
 │   ├── book-verifier.md           # Automated structure verification
@@ -114,7 +110,7 @@ flowchart TD
     S3["3. Outline<br/>BOOK_PLAN + STYLE_GUIDE"]
     S4["4. Pre-Writing Coordination<br/>DEPENDENCIES.md<br/>Chapter boundaries + cross-reference conventions"]
     S45["4.5 Code Index<br/>CODE_INDEX.md<br/>Pre-computed code summary + call graph"]
-    S5["5. First Draft<br/>Staged: 1 writer first, then 4 parallel"]
+    S5["5. First Draft<br/>Staged: 1 writer first, then up to 3 parallel"]
     S6["6. Three Reviews<br/>Initial (structure) + Technical (facts + tests) + Re-review (cross-chapter) + Final"]
     S7["7. Rework<br/>Up to 2 rounds"]
     S8["8. Verification<br/>Automated checks"]

@@ -18,7 +18,9 @@ The pipeline orchestrator (Phase 9) launches you three times in parallel, each w
 | `second-proofread` | Second Pass: Cross-Reference Validation only | `.work/proofread-2.md` |
 | `readability-pass` | Third Pass: Read-Through and Readability only | `.work/proofread-3.md` |
 
-**Check the invocation context for the mode.** The mode is communicated via the skill invocation parameters or the surrounding task context. Execute only the matching pass — do not run all three.
+**How mode is passed**: The pipeline orchestrator assigns a task to each proofreader teammate containing the mode keyword (e.g., "Execute `first-proofread` mode: text proofreading only"). Read the task description or skill invocation parameters to determine your mode. Execute ONLY that pass — do not run all three.
+
+**You are spawned as a teammate by the pipeline orchestrator (Phase 9). When you complete your report, shut down immediately.**
 
 ---
 
