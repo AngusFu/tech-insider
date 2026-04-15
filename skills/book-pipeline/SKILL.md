@@ -32,15 +32,18 @@ Wait for mailbox message
 
 **You should be idle most of the time.** The moment you finish a decision, yield. Wait for the mailbox. The system will notify you when a teammate completes, when a teammate goes idle, or when the user responds. Only then make the next decision. Never fill idle time with polling, monitoring, or doing teammates' work.
 
+**CRITICAL: After sending a message to any teammate (SendMessage), you MUST STOP and yield immediately.** Do NOT make any more tool calls. Do NOT "check status." Do NOT "prepare the next phase." Your message send is the last action of your turn. The next turn will be triggered by a mailbox notification. If you continue working after SendMessage, you block the mailbox and cause a DEADLOCK.
+
 ## Team Lifecycle Discipline
 
 **The pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at the end.**
 
 ### Waiting Discipline (Applies to EVERY phase)
 
-**Whenever the lead spawns a teammate, the lead MUST just wait for the mailbox message.** No exceptions.
+**Whenever the lead spawns a teammate or sends a message to a teammate, the lead MUST yield immediately.** No exceptions.
 
 - **CRITICAL: Polling DEADLOCKS the mailbox.** `sleep`, `sleep && stat`, `Monitor("Wait 60s and check for file")` — any polling mechanism blocks incoming mailbox messages from teammates. The lead will never see the completion message because it's busy polling. **This is a deadlock, not a timeout.**
+- **CRITICAL: After any SendMessage to a teammate, your turn is OVER.** Do NOT make more tool calls. Do NOT "check on the way." Do NOT "prepare the next step." Just yield. The next turn will be triggered by a mailbox notification.
 - **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check output files, do NOT grep for completion strings. Just yield and wait for the system to deliver the teammate's completion message.
 - When a teammate goes idle (mailbox notification received), send ONE structured shutdown request:
   ```
@@ -59,13 +62,15 @@ Between every phase that uses Agent Teams:
    })
    ```
    **Use the structured message format above — NOT a plain string.** **One request per teammate. Do NOT send multiple.**
-2. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
-3. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
-4. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
-5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
+2. **After sending ALL shutdown requests, YIELD IMMEDIATELY.** Your turn is over. The next turn will be triggered by mailbox notifications from teammates confirming shutdown. **Do NOT proceed to step 3 in the same turn.**
+3. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
+4. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
+5. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
+6. **After spawning ALL teammates, YIELD IMMEDIATELY.** Your turn is over.
+7. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
    - **CRITICAL: Polling blocks the mailbox.** If the lead uses `sleep`, `Monitor`, or any polling mechanism, incoming mailbox messages from teammates cannot be delivered — creating a DEADLOCK. The lead will never see the completion message because it's busy polling.
    - **The lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let the system deliver teammate messages to your mailbox.
-6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE structured shutdown request per teammate (see step 1 format), wait for confirmations.
+8. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE structured shutdown request per teammate (see step 1 format). **After sending, YIELD IMMEDIATELY.** Wait for confirmations in the next turn.
 
 **Lead's only jobs: create tasks, spawn ALL new teammates in parallel, then yield and wait for mailbox. Never poll.**
 
@@ -86,6 +91,7 @@ Every phase ends with: **Wait for teammate idle notification → send ONE `shutd
 - **NEVER** fall back to subagents (`Agent` without `team_name`)
 - **NEVER** use `sleep`, `sleep` loops, or `Monitor` to check teammate progress — teammates auto-message lead via mailbox on completion. The lead does NOT need to poll, wait on files, or monitor output. **Just wait for the mailbox message.**
 - **NEVER** poll for output files — if a teammate has work to do, they will message you. Just wait.
+- **NEVER** continue working after SendMessage to a teammate — SendMessage is ALWAYS the last action of your turn. Yield immediately.
 - **NEVER** rush shutdown — send ONE shutdown_request per teammate, then WAIT. The system takes time to process after approval. Do NOT send repeated shutdowns. Do NOT do the teammate's work yourself while waiting.
 
 ## Agent Teams Rules
