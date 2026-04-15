@@ -39,7 +39,7 @@ You execute the full book publishing pipeline. Move through phases sequentially,
    - **NEVER use `TaskOutput`** — deprecated. Use `Read` on the task's output file path
 
 ### Stop Member (Shutdown)
-5. **Shutdown**: `SendMessage({ to: "<teammate-name>", message: { type: "shutdown_request", request_id: "any", approve: true } })` — terminate the teammate gracefully
+6. **Shutdown**: `SendMessage({ to: "<teammate-name>", summary: "shutdown", message: { type: "shutdown_request", request_id: "any", approve: true } })` — terminate the teammate gracefully
    - Must shutdown ALL teammates before calling TeamDelete
    - Do NOT skip teammates — if you spawned 4, shutdown all 4
 
@@ -50,6 +50,8 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 
 ### Proceed
 7. **Continue**: Move to the next phase
+
+**IMPORTANT: Call `TeamDelete({})` at the end of EVERY phase before moving to the next.** Failure to delete the current team will cause the next phase's `TeamCreate` to fail with "Already leading team" error.
 
 **Prohibited team operations:**
 - **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files — always use `TeamDelete` tool
