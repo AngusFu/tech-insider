@@ -103,7 +103,9 @@ After all fixes, compile everything into `book-final.md`:
 3. Then work through P0/P1/P2 systematically, chapter by chapter.
 4. Track what you've fixed for each chapter.
 5. Edit chapter files in place.
-6. In `p2-fixes` mode: apply P2 fixes only, then shut down.
-7. In `write-appendices` mode: read all fixed chapters, `CODE_INDEX.md`, and `STYLE_GUIDE.md`, then write the 4 appendix files per the Appendix Writing Guide below. Shut down after writing all 4 files.
-8. In `compile-final` mode: read all 4 appendix files + preface, compile everything into `book-final.md`, then shut down.
-9. **When you complete your synthesis pass, shut down immediately.**
+6. In `p0-fix` mode: apply P0 fixes only (decision-box formatting, ASCII art replacement, missing structure), then shut down.
+7. In `p1-fix` mode: apply P1 fixes only (content deduplication, cross-reference correction, data consistency), then shut down.
+8. In `p2-fixes` mode: apply P2 fixes only (terminology unification, difficulty buffering, transitions), then shut down.
+9. In `write-appendices` mode: read all fixed chapters, `CODE_INDEX.md`, and `STYLE_GUIDE.md`, then write the 4 appendix files per the Appendix Writing Guide below. Shut down after writing all 4 files.
+10. In `compile-final` mode: read all 4 appendix files + preface, compile everything into `book-final.md`, then shut down.
+11. **When you complete your synthesis pass, shut down immediately.**

@@ -20,13 +20,14 @@ You are the chief planner for the book project. When a user provides an open-sou
 
 Check the invocation context for the mode. Execute only the matching task — do not run all three.
 
-## Trigger Conditions
+## Invocation Context
 
-Launch when the user provides:
-- An open-source project (GitHub repo or local path)
-- Writing intent (why this book, who the target audience is)
-- Key focus areas (optional)
-- Suggested chapter count from `--chapters` parameter (optional)
+The planner is invoked by the pipeline orchestrator with the following information passed via the task prompt:
+- **`full-plan` mode**: codebase path, confirmed topic (TOPIC.md), `BOOK_DIR`, and optional `--chapters` hint
+- **`dependencies` mode**: `BOOK_PLAN.md` and `STYLE_GUIDE.md` paths
+- **`code-index` mode**: codebase path and `BOOK_PLAN.md`
+
+The planner does NOT interact directly with users — it is always spawned as a teammate by the pipeline.
 
 ## Execution Steps
 
@@ -52,12 +53,10 @@ Launch when the user provides:
    du -sh .
    ```
 4. Analyze code architecture:
-   - Prefer using the `understand` skill or `Explore` agent to analyze architecture (if available)
-   - If unavailable, use manual approach:
-     - `find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort` to view directory structure
-     - Read README.md and main entry files (language-dependent: main.py, index.ts, main.go, lib.rs, etc.)
-     - Analyze module dependencies via import statements
-     - Identify core modules (largest files, most-referenced files)
+   - `find . -type d -maxdepth 3 | grep -v node_modules | grep -v .git | sort` to view directory structure
+   - Read README.md and main entry files (language-dependent: main.py, index.ts, main.go, lib.rs, etc.)
+   - Analyze module dependencies via import statements
+   - Identify core modules (largest files, most-referenced files)
 
 ### Step 2: Create Book Outline
 

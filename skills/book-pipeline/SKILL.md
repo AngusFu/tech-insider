@@ -164,7 +164,11 @@ Output: codebase metrics (language distribution, file count, LOC, directory stru
 
 **IMPORTANT: Execute all steps SEQUENTIALLY. Do NOT run multiple Bash calls in parallel.**
 
-1. If URL, run `git clone` (wait for it to complete). If local path, verify it exists with `ls`
+1. If URL:
+   - Derive repo directory name from the URL (e.g., `https://github.com/user/repo` → `repo/`)
+   - **Re-entrancy**: if the directory already exists, skip `git clone` and use the existing copy
+   - If not, run `git clone <url>` (wait for it to complete)
+   If local path, verify it exists with `ls`
 2. **Detect language distribution** (polyglot):
    ```bash
    find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
@@ -257,7 +261,8 @@ Output: chapter files `.work/chapters/chXX-*.md`
    - Task description must include: "These are foundation chapters — focus on narrative clarity, project motivation, architectural overview, and why this codebase matters. Lower code density, higher readability. Set the tone for the entire book."
    - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set the book's tone — exemplary structure compliance required. Pick up the task from the shared task list. When done, shut down."
    - Follow Shutdown Pattern.
-3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone. If acceptable, proceed to Batch 2. If issues found, list them for the user to decide whether to fix before Batch 2.
+3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone.
+   - **After reviewing, present findings to the user and ask for confirmation before proceeding to Batch 2.** If user approves, proceed. If issues found, list them and ask whether to fix before Batch 2 or proceed anyway.
 4. **Batch 2 (All remaining chapters)**:
    - Create tasks — one per remaining chapter. Each task must include:
      - Chapter title, description, key files from `BOOK_PLAN.md`
@@ -420,7 +425,13 @@ The preface is the first thing readers see — review it before incorporation:
 
 1. Create task: "Review `preface.md` against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md. Check: accuracy (matches TOPIC.md?), tone (analytical, 'we', not tutorial?), scope (intro without technical detail?), structure (motivation, audience, usage?), length (1-2 pages, no Mermaid, no code citations), factual claims. Write `.work/preface-review.md`."
 2. Spawn 1 **book-chapter-reviewer** teammate. Follow Shutdown Pattern.
-3. If FAIL, fix the preface before Phase 10
+3. **Verdict handling**:
+   - **PASS**: Proceed to Phase 10
+   - **FAIL**:
+     1. List the issues to the user.
+     2. **Spawn 1 book-preface-writer teammate** with task: "Rewrite `preface.md` fixing: [list issues from preface-review report]." Follow Shutdown Pattern.
+     3. Re-run Phase 9.5 (preface review) on the rewritten preface.
+     4. **Maximum 1 rewrite** — if Phase 9.5 still FAILs, present issues to user for manual intervention.
 
 ### Phase 10: Synthesis (Chunked Processing)
 
@@ -493,7 +504,10 @@ Output: `.work/external-review.md` (compilation integrity verdict: PASS/FAIL)
 
 1. Show final draft statistics (`wc -l`, `wc -c`, chapter count)
 2. Deliver final draft files to the user:
-   - List all deliverable file paths: `book-final.md`, `preface.md`, `appendix-A.md` through `appendix-D.md`
+   - List all deliverable file paths:
+     - `book-final.md` (in `BOOK_DIR/`)
+     - `preface.md` (in `BOOK_DIR/`)
+     - `appendix-A.md` through `appendix-D.md` (in `BOOK_DIR/`)
    - Display a summary of what was produced and where to find each file
 3. Display pipeline execution summary
 
