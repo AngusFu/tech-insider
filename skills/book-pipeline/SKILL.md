@@ -16,6 +16,24 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 - **Your ONLY job**: parse parameters → create teams → spawn teammates → monitor progress → consolidate results → report to user
 - Exception: Phase 1 (Clone + Analyze), Phase 2 (Topic Selection), Phase 6d (Final Verdict), and Phase 11 (Delivery) are lead responsibilities because they are coordination/decision phases, not content-generation phases
 
+## Team Lifecycle Discipline
+
+**You MUST follow this exact sequence for every phase that uses Agent Teams:**
+
+1. **Create**: `TeamCreate({ team_name: "<unique-name>" })` — create the team FIRST
+2. **Spawn**: `Agent({ team_name: "<same-name>", name: "<teammate-name>", ... })` — spawn teammates with the same team_name
+3. **Assign**: Use `TaskUpdate` to assign tasks to teammates
+4. **Wait**: Wait for teammates to message you with results. Do NOT rush them. Do NOT ask them repeatedly for status.
+5. **Shutdown**: When teammates complete, send `SendMessage({ to: "<name>", message: { type: "shutdown_request" } })` to terminate them
+6. **Cleanup**: Only after ALL teammates are shut down, call `TeamDelete` to clean up team files
+7. **Continue**: Move to the next phase
+
+**Prohibited team operations:**
+- **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files — always use `TeamDelete` tool
+- **NEVER** create a new team before the previous one is fully cleaned up
+- **NEVER** fall back to subagents (`Agent` without `team_name`) for work that should be done by teammates
+- **NEVER** rush teammates — wait for their messages. If they go idle, they are done. Send them a new task or shut them down.
+
 ## Agent Teams Rules
 
 **This pipeline uses Agent Teams, NOT subagents.** Each parallel batch spawns independent teammates that share a task list and communicate directly.
@@ -41,6 +59,7 @@ You execute the full book publishing pipeline. Move through phases sequentially,
      ```
 5. **One team per phase** — create a fresh team at the start of each parallel phase, clean up before moving to the next.
 6. **Lead only coordinates** — the pipeline (lead) delegates work, monitors progress, and reports to the user. All reading, writing, reviewing, and proofreading is done by teammates.
+7. **NEVER fall back to subagents** — if a teammate encounters an error or is slow, do NOT replace it with a subagent. Fix the issue within the team model or report to the user.
 
 ---
 
@@ -74,6 +93,8 @@ mkdir -p "$BOOK_DIR" "$BOOK_DIR/.work"
 
 Execute phases in order. After each phase completes, report to the user and confirm before proceeding.
 
+**IMPORTANT: The pipeline MUST continue to the next phase after user confirmation. Do NOT stop prematurely.**
+
 ### Phase 1: Clone + Analyze
 
 ```
@@ -81,7 +102,9 @@ Input: repo URL or local path
 Output: codebase metrics (language distribution, file count, LOC, directory structure, test coverage)
 ```
 
-1. If URL, `git clone`; if local path, verify it exists
+**IMPORTANT: Execute all steps SEQUENTIALLY. Do NOT run multiple Bash calls in parallel.**
+
+1. If URL, run `git clone` (wait for it to complete). If local path, verify it exists with `ls`
 2. **Detect language distribution** (polyglot):
    ```bash
    find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
@@ -105,7 +128,9 @@ Input: codebase analysis results, user intent
 Output: topic report (TOPIC.md)
 ```
 
-This is the first decision point for publication. **Judge whether it's worth writing, for whom, and how — before doing anything.**
+**This is a LEAD-ONLY phase. Do NOT create a team. Do NOT spawn any teammates. You write TOPIC.md yourself.**
+
+**Re-entrancy**: If `TOPIC.md` already exists from a previous run, read it first and present it to the user for confirmation instead of regenerating. Only regenerate if the user explicitly requests changes.
 
 1. **Early exit check**: if the codebase is very small (< 1K LOC, single file, or trivial project), recommend to the user that this project may not warrant a full technical book. Offer to continue anyway if the user confirms.
 2. Based on code analysis, generate topic report `TOPIC.md` containing:
@@ -117,7 +142,7 @@ This is the first decision point for publication. **Judge whether it's worth wri
    - **Recommended Chapter Count** — 12-18 chapters (based on codebase complexity), respecting the `--chapters` hint if provided
    - **What Not to Cover** — topics unsuitable for deep analysis
 3. Present the topic report to the user
-3. After user confirmation or edits, proceed to outline
+4. After user confirmation or edits, proceed to outline
 
 ### Phase 3: Outline
 

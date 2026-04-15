@@ -88,6 +88,18 @@ All intermediate files go in `.work/` directory:
 
 ## Pitfalls & Lessons Learned
 
+### Phase 1 Must Be Sequential
+Phase 1 is executed by the lead (not teammates). All Bash calls MUST be sequential — do NOT run parallel Bash tool calls. `git clone` must complete before running `find`/`wc`.
+
+### Phase 2 Is Lead-Only, No Team
+Phase 2 (Topic Selection) and Phase 1/6d/11 are lead responsibilities. Do NOT create teams or spawn teammates for these phases. If `TOPIC.md` already exists, read it instead of regenerating.
+
+### Team Lifecycle Must Use Tools
+**NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files. Always use `TeamCreate` → `Agent` → `TaskUpdate` → `SendMessage(shutdown)` → `TeamDelete` lifecycle.
+
+### No Subagent Fallback
+**NEVER** fall back to subagents (`Agent` without `team_name`) when teammates encounter errors. Fix the issue within the team model or report to the user.
+
 ### Team Size Hard Limit — Max 6
 **Rule**: Team size MUST NOT exceed 6 active teammates at any time.
 **Reviewer pattern**: Phases 6a/6b/6c/7 use exactly 4 reviewer teammates maximum regardless of chapter/Part count. Each processes multiple chapters serially via the shared task list.
