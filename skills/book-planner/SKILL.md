@@ -109,7 +109,7 @@ Create `STYLE_GUIDE.md`, which must include:
 ### Step 4: Create Editorial Pipeline Plan
 
 Create `EDITORIAL_PLAN.md` containing:
-- Roles and responsibilities for the 3 reviews + 3 proofreads
+- Roles and responsibilities for the 3 reviews + 3 proofreads + external review
 - Cover design requirements
 - Preface writing requirements
 - Editor-in-Chief responsibilities for synthesis

@@ -86,6 +86,8 @@ All intermediate files go in `.work/` directory:
 - `preface-review.md` — preface review
 - `review-consistency.md` — cross-chapter consistency (consolidated from per-Part reports)
 - `final-review-verdict.md` — go/no-go decision
+- `final-review.md` — Phase 10.5 quality gate report
+- `external-review.md` — Phase 10.6 compilation integrity report
 
 ## Pitfalls & Lessons Learned
 
