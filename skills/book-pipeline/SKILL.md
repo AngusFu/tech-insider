@@ -43,7 +43,8 @@ Between every phase that uses Agent Teams:
 - **NEVER** create a second team — ONE team throughout the pipeline
 - **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files
 - **NEVER** fall back to subagents (`Agent` without `team_name`)
-- **NEVER** use `sleep` loops — teammates auto-message lead on completion
+- **NEVER** use `sleep` or any sleep loop (e.g., `sleep 30 && stat file.md`) to check teammate progress — teammates auto-message lead via mailbox on completion. The lead does NOT need to poll for files.
+- **NEVER** poll for output files — if a teammate has work to do, they will message you. Just wait.
 - **NEVER** rush shutdown — send ONE shutdown_request per teammate, then WAIT. The system takes time to process after approval. Do NOT send repeated shutdowns. Do NOT do the teammate's work yourself while waiting.
 
 ## Agent Teams Rules
