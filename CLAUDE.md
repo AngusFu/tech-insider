@@ -154,7 +154,8 @@ All 3 proofreading passes + preface writing have no inter-dependencies — launc
 Spawn a book-chapter-reviewer teammate to review the preface against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md before Phase 10.
 
 ### TeamDelete Between Every Phase
-Every phase MUST call `TeamDelete({})` before moving to the next. The "Already leading team" error occurs when the lead tries to create a new team while still associated with the previous one. Shutdown all teammates → TeamDelete → create next team.
+**Old**: Every phase called TeamDelete → TeamCreate, causing "Already leading team" errors.
+**New**: Create team `book-pipeline` ONCE at Phase 3. Between phases: shutdown old teammates → spawn new teammates (same team_name). TeamDelete only at Phase 11.
 
 ### SendMessage Requires summary for String Messages
 When using `SendMessage` with a plain string message, `summary` parameter is required.

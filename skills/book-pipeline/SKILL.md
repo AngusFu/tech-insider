@@ -18,46 +18,27 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 
 ## Team Lifecycle Discipline
 
-**You MUST follow this exact sequence for every phase that uses Agent Teams:**
+**The pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at the end.**
 
-### Add Member (Spawn)
-1. **Create**: `TeamCreate({ team_name: "<unique-name>", description: "<phase-desc>" })` — create the team FIRST
-2. **Spawn**: `Agent({ team_name: "<same-name>", name: "<teammate-name>", subagent_type: "...", prompt: "...", mode: "bypassPermissions" })` — spawn teammate with the same team_name
-3. **Assign**: Use `TaskUpdate({ owner: "<teammate-name>", task_id: "N" })` to assign the task
+### Phase Transition (Shutdown Old → Spawn New)
+Between every phase that uses Agent Teams:
+1. **Shutdown old teammates**: For each active teammate, send `shutdown_request` via `SendMessage`
+2. **Wait for all shutdowns** — teammates confirm via mailbox
+3. **Spawn new teammates**: `Agent({ team_name: "book-pipeline", name: "<new-name>", subagent_type: "...", prompt: "...", mode: "bypassPermissions" })` — same team_name, new names
+4. **Assign**: `TaskUpdate` — assign tasks to new teammates
+5. **Wait** — teammates auto-message lead via mailbox when complete
 
-### Communicate (Send Message)
-4. **Message**: `SendMessage({ to: "<teammate-name>", message: "继续审查 ch03，重点关注代码引用准确性" })` — assign new work or give instructions
-   - Can message idle teammates to wake them up
-   - Do NOT spam — one message per instruction, wait for response
+### Initial Team Creation (Phase 3 only)
+`TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })` — create ONCE.
 
-### Wait for Teammates (Non-blocking)
-5. **Just wait** — Agent Teams teammates automatically message the lead via the mailbox when they complete a task or go idle. You do NOT need to poll:
-   - When a teammate finishes, you'll receive their message automatically
-   - When a teammate goes idle, you'll get an idle notification
-   - **NEVER use `sleep` loops** to check teammate status — they block the main conversation turn
-   - If you need to check external state (non-teammate processes), use `Monitor` tool with `persistent: false` for one-shot checks, or `persistent: true` for continuous watches
-   - **NEVER use `TaskOutput`** — deprecated. Use `Read` on the task's output file path
+### Final Cleanup (Phase 11 only)
+`TeamDelete({})` — delete ONCE at the very end. Only after ALL teammates are shut down.
 
-### Stop Member (Shutdown)
-6. **Shutdown**: `SendMessage({ to: "<teammate-name>", summary: "shutdown", message: { type: "shutdown_request", request_id: "any", approve: true } })` — terminate the teammate gracefully
-   - Must shutdown ALL teammates before calling TeamDelete
-   - Do NOT skip teammates — if you spawned 4, shutdown all 4
-
-### Cleanup Team (Delete)
-6. **Delete**: `TeamDelete({})` — remove team files and task directories
-   - Only after ALL teammates are confirmed shut down
-   - If TeamDelete fails with "active members" error, shutdown remaining teammates first, then retry
-
-### Proceed
-7. **Continue**: Move to the next phase
-
-**IMPORTANT: Call `TeamDelete({})` at the end of EVERY phase before moving to the next.** Failure to delete the current team will cause the next phase's `TeamCreate` to fail with "Already leading team" error.
-
-**Prohibited team operations:**
-- **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files — always use `TeamDelete` tool
-- **NEVER** create a new team before the previous one is fully cleaned up (TeamDelete succeeded)
-- **NEVER** fall back to subagents (`Agent` without `team_name`) for work that should be done by teammates
-- **NEVER** rush teammates — wait for their messages. If they go idle, they are done. Send them a new task or shut them down.
+### Prohibited Operations
+- **NEVER** create a second team — ONE team throughout the pipeline
+- **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files
+- **NEVER** fall back to subagents (`Agent` without `team_name`)
+- **NEVER** use `sleep` loops — teammates auto-message lead on completion
 
 ## Agent Teams Rules
 
@@ -82,7 +63,7 @@ You execute the full book publishing pipeline. Move through phases sequentially,
      | 2 | book-chapter-reviewer | Review ch02 | completed |
      | 7 | book-chapter-reviewer | Review ch07 | queued |
      ```
-5. **One team per phase** — create a fresh team at the start of each parallel phase, clean up before moving to the next.
+5. **Single team throughout** — create team "book-pipeline" at Phase 3. Between phases: shutdown old teammates → spawn new teammates with same team_name. Delete team only at Phase 11.
 6. **Lead only coordinates** — the pipeline (lead) delegates work, monitors progress, and reports to the user. All reading, writing, reviewing, and proofreading is done by teammates.
 7. **NEVER fall back to subagents** — if a teammate encounters an error or is slow, do NOT replace it with a subagent. Fix the issue within the team model or report to the user.
 
@@ -176,7 +157,7 @@ Input: TOPIC.md + codebase
 Output: BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 ```
 
-1. Create a team named `outline-phase`
+1. Create team `book-pipeline` with `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })`
 2. Spawn one **book-planner** teammate with `full-plan` mode, passing the codebase path, confirmed topic (TOPIC.md), `BOOK_DIR`, and the `--chapters` hint (if provided)
 3. Assign task: generate `BOOK_PLAN.md`, `STYLE_GUIDE.md`, and `EDITORIAL_PLAN.md`
 4. Teammate shuts down after producing all three files
@@ -191,7 +172,7 @@ Output: DEPENDENCIES.md (chapter dependency graph + cross-reference conventions)
 
 **Before Writers start in parallel, make sure they all know where their boundaries are.**
 
-1. Create team `coordination`
+1. Spawn new teammates
 2. Spawn one **book-planner** teammate with `dependencies` mode, passing `BOOK_PLAN.md` and `STYLE_GUIDE.md`
 3. Teammate reads both files and generates `DEPENDENCIES.md`:
    - "Home chapter" for each concept (who does the deep analysis)
@@ -209,7 +190,7 @@ Output: CODE_INDEX.md (pre-computed code summary + call graph + architecture map
 
 **Writers and reviewers query this index instead of reading raw source — cuts token cost by 50%+.**
 
-1. Create team `code-index`
+1. Spawn new teammates in `book-pipeline` team
 2. Spawn one **book-planner** teammate with `code-index` mode, passing the codebase path and `BOOK_PLAN.md`
 3. Teammate scans the codebase and produces `CODE_INDEX.md` containing:
    - **Module summary** — top-level directory → purpose → key files → file count → LOC
@@ -233,7 +214,7 @@ Output: chapter files `.work/chapters/chXX-*.md`
 2. Read `BOOK_PLAN.md` to get all chapter assignments. Split chapters into 2 batches:
    - **Batch 1**: Foundation chapters (first 2-3 chapters that set the book's tone)
    - **Batch 2**: All remaining chapters
-3. **Batch 1**: Create team `writing-batch1`, spawn one **book-writer** teammate with a detailed task containing:
+3. **Batch 1**: Spawn one **book-writer** teammate in `book-pipeline` team with a detailed task containing:
    - Exact chapter titles, numbers, and descriptions from `BOOK_PLAN.md`
    - Key source files listed per chapter
    - Boundaries from `DEPENDENCIES.md` (what NOT to cover, cross-reference targets)
@@ -241,7 +222,7 @@ Output: chapter files `.work/chapters/chXX-*.md`
    - Code INDEX.md as primary reference
    - Batch 1 writer's role: set the book's tone — writing must be exemplary in structure compliance
 4. **Checkpoint**: After Batch 1 completes, review the output for style, depth, and tone alignment with STYLE_GUIDE.md. If acceptable, proceed to Batch 2.
-5. **Batch 2**: Create team `writing-batch2`, split remaining chapters among up to 3 **book-writer** teammates. Each task must contain:
+5. **Batch 2**: Spawn up to 3 **book-writer** teammates in `book-pipeline` team, split remaining chapters among them. Each task must contain:
    - Exact chapter assignments (titles, numbers, descriptions from `BOOK_PLAN.md`)
    - Key source files per chapter
    - Boundaries from `DEPENDENCIES.md`
@@ -260,7 +241,7 @@ Input: all chapter files `.work/chapters/ch*.md` + STYLE_GUIDE.md
 Output: `.work/review-chXX.md` (one per chapter)
 ```
 
-1. Create team `initial-review`
+1. Spawn new teammates in `book-pipeline` team
 2. Create tasks for each chapter in the shared task list (one task per chapter)
 3. Spawn 4 **book-chapter-reviewer** teammates (max 4 regardless of chapter count)
 4. Each reviewer picks up the next unassigned task from the task list, reviews that chapter, writes `.work/review-chXX.md`, then picks up the next one — repeat until all tasks are done
@@ -275,7 +256,7 @@ Output: `.work/tech-review-chXX.md` (one per chapter)
 
 **This is not a format check — it is a fact check. Verify whether the code logic described in each chapter actually matches the source code.**
 
-1. Create team `technical-review`
+1. Spawn new teammates in `book-pipeline` team
 2. Create tasks for each chapter in the shared task list (one task per chapter)
 3. Spawn 4 **book-technical-reviewer** teammates (max 4 regardless of chapter count)
 4. Each reviewer picks up the next unassigned task from the task list, reviews that chapter against source code, writes `.work/tech-review-chXX.md`, then picks up the next one — repeat until all tasks are done
@@ -312,7 +293,7 @@ Output: `.work/review-consistency.md`
 
 **To avoid context window explosion (18 chapters + all review reports = 100K+ tokens), split consistency review by Book Part:**
 
-1. Create team `consistency-review`
+1. Spawn new teammates in `book-pipeline` team
 2. Read `BOOK_PLAN.md` to identify Parts (typically 4-5 Parts)
 3. Spawn up to 4 **book-consistency-reviewer** teammates (if fewer Parts than 4, spawn one per Part)
 4. Assign each teammate one Part's scope. If a teammate finishes early and other Parts remain, assign the next unassigned Part
@@ -348,7 +329,7 @@ Output: revised `.work/chapters/ch*.md` files
 ```
 
 1. Read `BOOK_PLAN.md` to determine which chapters have FAIL verdicts
-2. Create team `rework-round-N` (N = 1 or 2)
+2. Spawn new teammates in `book-pipeline` team
 3. **Rework is handled by up to 4 generic Writer teammates**, each serially processing their assigned FAIL chapters:
    - Create tasks for each FAIL chapter
    - Split tasks among up to 4 **book-writer** teammates (contiguous chapter ranges)
@@ -369,7 +350,7 @@ Input: all chapter files `.work/chapters/ch*.md`
 Output: `.work/verification-status.md`
 ```
 
-1. Create team `verification`
+1. Spawn new teammates in `book-pipeline` team
 2. Spawn one **book-verifier** teammate with task: run automated structure checks including Mermaid syntax validation
 3. Before launching, check if `mmdc` is available:
    ```bash
@@ -388,7 +369,7 @@ Input: all chapter files `.work/chapters/ch*.md` + STYLE_GUIDE.md + TOPIC.md + B
 Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md` + `preface.md`
 ```
 
-1. Create team `proofread-preface`
+1. Spawn new teammates in `book-pipeline` team
 2. Spawn 4 teammates with independent tasks (max 4 — within limit):
    - **book-proofreader** with `first-proofread` mode → writes `.work/proofread-1.md`
    - **book-proofreader** with `second-proofread` mode → writes `.work/proofread-2.md`
@@ -406,7 +387,7 @@ Output: `.work/preface-review.md`
 
 The preface is the first thing readers see — review it before incorporation:
 
-1. Create team `preface-review`
+1. Spawn new teammates in `book-pipeline` team
 2. Spawn one **book-chapter-reviewer** teammate with task: review `preface.md` against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md. **Use the preface-specific checklist below, NOT the chapter structural checklist**:
 3. Teammate checks:
    - **Accuracy** — does the preface's project positioning match TOPIC.md?
@@ -448,7 +429,7 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 
 **The last human-readable quality gate. Catches ASCII art residue, missing sections, broken cross-references, and Mermaid errors in the compiled manuscript.**
 
-1. Create team `final-review`
+1. Spawn new teammates in `book-pipeline` team
 2. Spawn one **book-final-reviewer** teammate with task: review the compiled `book-final.md` against the checklist below:
    - **ASCII art residue** — `grep -P '[│├└─┌┐┬┴┼]+'` — any match is FAIL
    - **Structural completeness** — every chapter has metaphor, Mermaid, "停下来想一想", "可迁移的设计原则"
