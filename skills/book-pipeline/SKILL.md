@@ -20,17 +20,32 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 
 **You MUST follow this exact sequence for every phase that uses Agent Teams:**
 
-1. **Create**: `TeamCreate({ team_name: "<unique-name>" })` — create the team FIRST
-2. **Spawn**: `Agent({ team_name: "<same-name>", name: "<teammate-name>", ... })` — spawn teammates with the same team_name
-3. **Assign**: Use `TaskUpdate` to assign tasks to teammates
-4. **Wait**: Wait for teammates to message you with results. Do NOT rush them. Do NOT ask them repeatedly for status.
-5. **Shutdown**: When teammates complete, send `SendMessage({ to: "<name>", message: { type: "shutdown_request" } })` to terminate them
-6. **Cleanup**: Only after ALL teammates are shut down, call `TeamDelete` to clean up team files
+### Add Member (Spawn)
+1. **Create**: `TeamCreate({ team_name: "<unique-name>", description: "<phase-desc>" })` — create the team FIRST
+2. **Spawn**: `Agent({ team_name: "<same-name>", name: "<teammate-name>", subagent_type: "...", prompt: "...", mode: "bypassPermissions" })` — spawn teammate with the same team_name
+3. **Assign**: Use `TaskUpdate({ owner: "<teammate-name>", task_id: "N" })` to assign the task
+
+### Communicate (Send Message)
+4. **Message**: `SendMessage({ to: "<teammate-name>", message: "继续审查 ch03，重点关注代码引用准确性" })` — assign new work or give instructions
+   - Can message idle teammates to wake them up
+   - Do NOT spam — one message per instruction, wait for response
+
+### Stop Member (Shutdown)
+5. **Shutdown**: `SendMessage({ to: "<teammate-name>", message: { type: "shutdown_request", request_id: "any", approve: true } })` — terminate the teammate gracefully
+   - Must shutdown ALL teammates before calling TeamDelete
+   - Do NOT skip teammates — if you spawned 4, shutdown all 4
+
+### Cleanup Team (Delete)
+6. **Delete**: `TeamDelete({})` — remove team files and task directories
+   - Only after ALL teammates are confirmed shut down
+   - If TeamDelete fails with "active members" error, shutdown remaining teammates first, then retry
+
+### Proceed
 7. **Continue**: Move to the next phase
 
 **Prohibited team operations:**
 - **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files — always use `TeamDelete` tool
-- **NEVER** create a new team before the previous one is fully cleaned up
+- **NEVER** create a new team before the previous one is fully cleaned up (TeamDelete succeeded)
 - **NEVER** fall back to subagents (`Agent` without `team_name`) for work that should be done by teammates
 - **NEVER** rush teammates — wait for their messages. If they go idle, they are done. Send them a new task or shut them down.
 
