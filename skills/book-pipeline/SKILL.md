@@ -46,6 +46,9 @@ Between every phase that uses Agent Teams:
 ### Initial Team Creation (Phase 3 only)
 `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })` — create ONCE.
 
+### Shutdown Pattern (used by every phase)
+Every phase ends with: **Wait for teammate idle notification → send ONE `shutdown_request` → wait for confirmation → proceed to next phase.** Refer to "Waiting Discipline" section above for the full rules.
+
 ### Final Cleanup (Phase 11 only)
 `TeamDelete({})` — delete ONCE at the very end. Only after ALL teammates are shut down.
 
@@ -177,7 +180,7 @@ Output: BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 1. Create team `book-pipeline` with `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })`
 2. Create task: "Analyze codebase, generate BOOK_PLAN.md (chapter outline with Theme field per chapter), STYLE_GUIDE.md (writing guide), and EDITORIAL_PLAN.md (pipeline plan)."
 3. Spawn 1 **book-planner** teammate with `full-plan` mode, passing codebase path, TOPIC.md, `BOOK_DIR`, and `--chapters` hint.
-4. **Wait for idle** → shutdown → confirm.
+4. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 5. Present outline summary to the user; confirm before moving to coordination.
 
 ### Phase 4: Pre-Writing Coordination (Critical — Prevents Style Fragmentation)
@@ -191,7 +194,7 @@ Output: DEPENDENCIES.md (chapter dependency graph + cross-reference conventions)
 
 1. Create task: "Read BOOK_PLAN.md and STYLE_GUIDE.md, generate DEPENDENCIES.md with home chapter, cross-reference conventions, content boundaries, transition suggestions."
 2. Spawn 1 **book-planner** teammate with `dependencies` mode.
-3. **Wait for idle** → shutdown → confirm.
+3. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 
 ### Phase 4.5: Code Index (Token Budget Reduction)
 
@@ -204,7 +207,7 @@ Output: CODE_INDEX.md (pre-computed code summary + call graph + architecture map
 
 1. Create task: "Scan codebase, produce CODE_INDEX.md with module summary, call graph, data flow map, key constants, test inventory, architecture summary."
 2. Spawn 1 **book-planner** teammate with `code-index` mode.
-3. **Wait for idle** → shutdown → confirm.
+3. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 4. Writers and reviewers query this index instead of reading raw source — cuts token cost by 50%+.
 
 ### Phase 5: First Draft Writing (Staged — Prevents Writer Drift)
@@ -219,7 +222,7 @@ Output: chapter files `.work/chapters/chXX-*.md`
    - Create task for foundation chapters with details from `BOOK_PLAN.md` (titles, descriptions, key files, chapter theme/lens), `DEPENDENCIES.md` (boundaries), `STYLE_GUIDE.md` (conventions), `CODE_INDEX.md` (code summaries)
    - Task description must include: "These are foundation chapters — focus on narrative clarity, project motivation, architectural overview, and why this codebase matters. Lower code density, higher readability. Set the tone for the entire book."
    - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set the book's tone — exemplary structure compliance required. Pick up the task from the shared task list. When done, shut down."
-   - Wait for completion → shutdown → confirm
+   - Follow Shutdown Pattern.
 3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone. If acceptable, proceed to Batch 2. If issues found, list them for the user to decide whether to fix before Batch 2.
 4. **Batch 2 (All remaining chapters)**:
    - Create tasks — one per remaining chapter. Each task must include:
@@ -233,7 +236,7 @@ Output: chapter files `.work/chapters/chXX-*.md`
      - Path to Batch 1 output as style reference
    - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions, adapting tone and code density to the chapter's theme/lens as specified in the task. Use Batch 1 output as style reference. When no tasks remain, shut down."
    - Each writer auto-claims, writes, auto-claims next — repeat until done
-   - Writers go idle → send shutdown_request, wait for confirmation
+   - Follow Shutdown Pattern.
 5. Collect results on completion; show progress to the user
 
 ### Phase 6: Three Reviews
@@ -248,7 +251,7 @@ Output: `.work/review-chXX.md` (one per chapter)
 1. Create tasks in the shared task list — one task per chapter, with details: "Review chapter chXX for structural compliance per STYLE_GUIDE.md. Write report to `.work/review-chXX.md`."
 2. Spawn 4 **book-chapter-reviewer** teammates (max 4 regardless of chapter count) with prompt: "Pick up available review tasks from the shared task list. Review each chapter, write report to `.work/review-chXX.md`. When no tasks remain, shut down."
 3. Each reviewer auto-claims, reviews, writes report, then auto-claims the next one — repeat until all tasks are done
-4. Each reviewer goes idle when tasks are exhausted — send shutdown_request, wait for confirmation
+4. Follow Shutdown Pattern.
 
 #### 6b. Technical Review (Fact-Checking — Critical!)
 
@@ -262,7 +265,7 @@ Output: `.work/tech-review-chXX.md` (one per chapter)
 1. Create tasks in the shared task list — one task per chapter: "Fact-check chapter chXX against source code. Verify code citations, architecture descriptions, data accuracy. Write report to `.work/tech-review-chXX.md`."
 2. Spawn 4 **book-technical-reviewer** teammates (max 4 regardless of chapter count) with prompt: "Pick up available technical review tasks. Verify claims against source code, run tests if available. Write report to `.work/tech-review-chXX.md`. When no tasks remain, shut down."
 3. Each reviewer auto-claims, verifies, writes report, then auto-claims the next one — repeat until all tasks are done
-4. Each reviewer goes idle when tasks are exhausted — send shutdown_request, wait for confirmation
+4. Follow Shutdown Pattern.
 5. Each reviewer checks:
    - **Code Logic** — does the claimed behavior match the actual code
    - **Architecture Description** — does the described architecture match the actual code structure
@@ -299,7 +302,7 @@ Output: `.work/review-consistency.md`
 2. Create tasks in the shared task list — one task per Part: "Review consistency of all chapters within Part N. Check terminology, content deduplication, data consistency, design decision contradictions, cross-reference accuracy. Write report to `.work/review-consistency-partN.md`."
 3. Spawn up to 4 **book-consistency-reviewer** teammates (if fewer Parts than 4, spawn one per Part). **Spawn ALL in parallel.**
 4. Each reviewer auto-claims a Part, writes report, then auto-claims the next Part if available — repeat until all Parts are done
-5. After all Part reviewers go idle, send shutdown_request, wait for confirmation.
+5. Follow Shutdown Pattern.
 6. **Merge strategy**: The pipeline lead consolidates all `.work/review-consistency-partN.md` files into `.work/review-consistency.md`:
    - If the same issue appears in multiple Parts → list once with "affects all Parts"
    - If Part-specific → list under that Part section
@@ -337,7 +340,7 @@ Output: revised `.work/chapters/ch*.md` files
 2. Create tasks in the shared task list — one task per FAIL chapter with details: chapter title/description/key files from `BOOK_PLAN.md`, FAIL items from `review-chXX.md` (structural issues), FAIL items from `tech-review-chXX.md` (factual errors), STYLE_GUIDE.md for formatting. Note: fix factual errors first.
 3. Spawn up to 4 **book-writer** teammates with prompt: "Pick up available rework tasks. Fix assigned chapters against actual source code. Write revised chapter to `.work/chapters/chXX-*.md`. When no tasks remain, shut down."
 4. Each writer auto-claims, fixes, writes, then auto-claims the next FAIL chapter — repeat until done
-5. After writers go idle, send shutdown_request, wait for confirmation, then **re-run Phase 6a + Phase 6b** with new tasks and teammates
+5. Follow Shutdown Pattern, then **re-run Phase 6a + Phase 6b** with new tasks and teammates.
 6. Maximum 2 rework rounds; beyond that, report to the user for a decision
 
 ### Phase 8: Verification
@@ -352,7 +355,7 @@ Output: `.work/verification-status.md`
    which mmdc >/dev/null 2>&1 && echo "mmdc available" || echo "mmdc not available — falling back to heuristic checks"
    ```
 2. Create task: "Run automated structure checks on all chapters. Validate Mermaid syntax (use mmdc if available, else heuristic checks). Write `.work/verification-status.md`."
-3. Spawn 1 **book-verifier** teammate. When idle, shutdown → confirm.
+3. Spawn 1 **book-verifier** teammate. Follow Shutdown Pattern.
 4. Display verification results table. If any FAILs, list the issues, get user confirmation, then proceed to proofreading
 
 ### Phase 9: Three Proofreads + Preface (Parallel)
@@ -369,7 +372,7 @@ Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md`
    - **book-proofreader**: prompt = "Execute `second-proofread` mode only: cross-reference validation (cross-references, content overlap, design decision consistency). Write `.work/proofread-2.md`."
    - **book-proofreader**: prompt = "Execute `readability-pass` mode only: read-through (transitions, narrative coherence, pacing, tone). Write `.work/proofread-3.md`."
    - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md. 1-2 pages, no Mermaid, no code citations."
-2. All 4 work in parallel. When each goes idle, send ONE `shutdown_request`, wait for confirmations.
+2. All 4 work in parallel. Follow Shutdown Pattern for each.
 3. Report to the user when all are complete
 
 ### Phase 9.5: Preface Review
@@ -382,7 +385,7 @@ Output: `.work/preface-review.md`
 The preface is the first thing readers see — review it before incorporation:
 
 1. Create task: "Review `preface.md` against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md. Check: accuracy (matches TOPIC.md?), tone (analytical, 'we', not tutorial?), scope (intro without technical detail?), structure (motivation, audience, usage?), length (1-2 pages, no Mermaid, no code citations), factual claims. Write `.work/preface-review.md`."
-2. Spawn 1 **book-chapter-reviewer** teammate. When idle, shutdown → confirm.
+2. Spawn 1 **book-chapter-reviewer** teammate. Follow Shutdown Pattern.
 3. If FAIL, fix the preface before Phase 10
 
 ### Phase 10: Synthesis (Chunked Processing)
@@ -394,11 +397,11 @@ Output: fixed chapters + fixed preface + 4 appendices + book-final.md
 
 **To avoid context-window saturation, process in sequential passes. Shutdown old teammates, spawn new ones for each pass.**
 
-1. **Pass 1: P0 Fixes** — create task: "Fix P0 issues: decision-box formatting, ASCII art replacement, missing structure completion." Spawn 1 **book-editor-in-chief** teammate with `p0-fix` mode. When idle, shutdown → confirm.
-2. **Pass 2: P1 Fixes** — create task: "Fix P1 issues: content deduplication, cross-reference correction, data consistency." Spawn 1 **book-editor-in-chief** with `p1-fix` mode. When idle, shutdown → confirm.
-3. **Pass 3: P2 Fixes** — create task: "Fix P2 issues: terminology unification, difficulty buffering, transitions." Spawn 1 **book-editor-in-chief** with `p2-fixes` mode. When idle, shutdown → confirm.
-4. **Pass 4: Appendix Writing** — create task: "Write 4 appendix files: appendix-A (file index), appendix-B (tool reference), appendix-C (design decisions), appendix-D (glossary)." Spawn 1 **book-editor-in-chief** with `write-appendices` mode. When idle, shutdown → confirm.
-5. **Pass 5: Final Compilation** — create task: "Read all fixed chapters + 4 appendices + preface, compile `book-final.md`." Spawn 1 **book-editor-in-chief** with `compile-final` mode. When idle, shutdown → confirm.
+1. **Pass 1: P0 Fixes** — create task: "Fix P0 issues: decision-box formatting, ASCII art replacement, missing structure completion." Spawn 1 **book-editor-in-chief** teammate with `p0-fix` mode. Follow Shutdown Pattern.
+2. **Pass 2: P1 Fixes** — create task: "Fix P1 issues: content deduplication, cross-reference correction, data consistency." Spawn 1 **book-editor-in-chief** with `p1-fix` mode. Follow Shutdown Pattern.
+3. **Pass 3: P2 Fixes** — create task: "Fix P2 issues: terminology unification, difficulty buffering, transitions." Spawn 1 **book-editor-in-chief** with `p2-fixes` mode. Follow Shutdown Pattern.
+4. **Pass 4: Appendix Writing** — create task: "Write 4 appendix files: appendix-A (file index), appendix-B (tool reference), appendix-C (design decisions), appendix-D (glossary)." Spawn 1 **book-editor-in-chief** with `write-appendices` mode. Follow Shutdown Pattern.
+5. **Pass 5: Final Compilation** — create task: "Read all fixed chapters + 4 appendices + preface, compile `book-final.md`." Spawn 1 **book-editor-in-chief** with `compile-final` mode. Follow Shutdown Pattern.
 6. Present synthesis results to the user (fix counts, final word count)
 
 ### Phase 10.5: Final Review (Quality Gate — Before Delivery)
@@ -411,7 +414,7 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 **The last human-readable quality gate. Catches ASCII art residue, missing sections, broken cross-references, and Mermaid errors in the compiled manuscript.**
 
 1. Create task: "Review `book-final.md`: ASCII art residue (grep for box-drawing chars), structural completeness (metaphor, Mermaid, reflection questions, principles per chapter), decision box format (blockquote only), Mermaid syntax validation, cross-reference integrity, overall quality (word count anomalies, TODOs). Write `.work/final-review.md` with PASS/FAIL verdict."
-2. Spawn 1 **book-final-reviewer** teammate. When idle, shutdown → confirm.
+2. Spawn 1 **book-final-reviewer** teammate. Follow Shutdown Pattern.
 3. **Verdict handling**:
    - **PASS**: Proceed to Phase 11 (Delivery)
    - **FAIL**: List all blockers to user with severity ratings. Fix P0 issues before delivery. If user confirms, proceed to Phase 11 despite FAIL.
