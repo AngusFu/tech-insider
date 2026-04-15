@@ -68,13 +68,10 @@ Create `BOOK_PLAN.md` containing:
 - Part-divided chapter outline (12-18 chapters, dynamically determined by codebase complexity, respecting `--chapters` hint if provided)
 - For each chapter:
   - Chapter title and slug (e.g., `ch01-project-overview`)
-  - Writer assignment: `foundation` / `core-loop` / `core-system` / `tools` / `integration`
   - 2-3 sentence description of content
   - Key source files to analyze (with actual file paths)
   - Content overlap rules (what NOT to cover, where to cross-reference)
   - Expected design decisions to cover
-
-**Chapter assignment**: Each chapter is assigned to a conceptual category in BOOK_PLAN.md for organizational purposes. Writers read these assignments from the file to know which chapters to write. Categories (adjust flexibly by project type): foundation (intro/motivation chapters), core (main logic/architecture), tools (subsystems/plugins), integration (deployment/engineering).
 
 **Required format for each chapter entry**:
 ```markdown

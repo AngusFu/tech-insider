@@ -29,7 +29,7 @@ tech-insider/
 │   ├── plugin.json              # Plugin manifest (name, skills, commands)
 │   └── marketplace.json         # Marketplace registration
 ├── skills/
-│   ├── book-pipeline/SKILL.md   # Pipeline orchestration — full flow, parallel subagents
+│   ├── book-pipeline/SKILL.md   # Pipeline orchestration — full flow, Agent Teams
 │   ├── book-planner/SKILL.md    # Planner: analyze codebase, draft outline, style guide
 │   ├── book-writer-template/SKILL.md  # Writer template: chapter structure, writing rules
 │   ├── book-consistency-reviewer/SKILL.md  # Cross-chapter consistency review
@@ -129,8 +129,8 @@ Paths like `.work/proofread-1.md` look "hardcoded" but they are **inter-agent co
 ### No Duplicate Instructions
 `commands/make-book.md` should only parse parameters and delegate to `skills/book-pipeline/SKILL.md`. Don't duplicate pipeline logic in the command file.
 
-### Main Agent Does Not Write
-The pipeline orchestrator (main agent) only coordinates, delegates, and reports. All writing, reviewing, and proofreading is delegated to subagents. If main starts writing chapters, context window explodes.
+### Lead Does Not Write
+The pipeline orchestrator (lead) only coordinates, delegates, and reports. All writing, reviewing, and proofreading is delegated to Agent Teams teammates. If lead starts writing chapters, context window explodes.
 
 ### Staged Writer Launch
 Foundation chapters go first (set tone). After style checkpoint, remaining chapters split among up to 3 generic writers in parallel with Batch 1 output as reference.
@@ -142,7 +142,7 @@ No ASCII art allowed. All architecture diagrams must be Mermaid. Verified by `bo
 Writers and reviewers query the pre-computed index instead of reading raw source. Drill into source only for specific citations.
 
 ### Chunked Synthesis
-Phase 10 processes in 5 sequential passes: P0 fixes → P1 fixes → P2 fixes → appendices (4 teammates parallel) → final compile. Each pass launches a fresh team.
+Phase 10 processes in 5 sequential passes: P0 fixes → P1 fixes → P2 fixes → appendices (1 editor-in-chief) → final compile. Each pass shuts down old teammate, spawns new one.
 
 ### Generic Writer Agent
 Only 1 `book-writer.md` agent needed. Chapter assignments come from `BOOK_PLAN.md` at runtime. Phase 5 splits into Batch 1 (1 writer, foundation chapters) + Batch 2 (up to 3 writers, remaining chapters). Phase 7 rework spawns up to 4 generic writers for FAIL chapters.

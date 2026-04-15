@@ -11,10 +11,13 @@ This plugin:
 ## Agent Permissions
 
 Agents in this plugin have the following tool restrictions:
-- **Writers**: `Read, Write, Edit, Grep, Glob, Bash, Agent` — can write chapters and spawn sub-agents
-- **Reviewers**: `Read, Write, Grep, Glob, Bash` — read-only, no file modification
-- **Verifiers**: `Read, Write, Grep, Glob, Bash` — read-only, automated structural checks
-- **Editor-in-Chief**: `Read, Write, Edit, Grep, Glob, Bash` — can fix issues in chapter files
+- **Writer**: `Read, Write, Edit, Grep, Glob, Bash` — write chapters, run code analysis commands
+- **Reviewers**: `Read, Write, Grep, Glob, Bash` — read chapter files, write reports
+- **Verifiers**: `Read, Write, Grep, Glob, Bash` — automated structural checks
+- **Editor-in-Chief**: `Read, Write, Edit, Grep, Glob, Bash` — fix issues in chapter files
+- **Final Reviewer**: `Read, Write, Grep, Glob, Bash` — read compiled book, write report
+
+No agent has `Agent` tool access — teammates in Agent Teams cannot spawn other agents.
 
 ## External Dependencies
 

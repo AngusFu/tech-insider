@@ -46,8 +46,8 @@ claude --plugin-dir /path/to/tech-insider
 
 | Method | Trigger | Execution | Use Case |
 |--------|---------|-----------|----------|
-| `/tech-insider:make-book` | Command | Orchestrates subagents for parallel execution | Full book production |
-| `book-pipeline` skill | Skill tool | Orchestrates subagents for parallel execution | Same as above, skill entry point |
+| `/tech-insider:make-book` | Command | Orchestrates Agent Teams for parallel execution | Full book production |
+| `book-pipeline` skill | Skill tool | Orchestrates Agent Teams for parallel execution | Same as above, skill entry point |
 
 Both share the same pipeline logic (`skills/book-pipeline/SKILL.md`). The command only handles parameter parsing before loading the skill.
 
@@ -62,14 +62,14 @@ tech-insider/
 │   ├── book-writer-template/    # Writer template: chapter writing standards
 │   ├── book-consistency-reviewer/ # Cross-chapter consistency review (re-review)
 │   ├── book-proofreader/        # Proofreading: text / cross-references / readability
-│   └── book-pipeline/           # Pipeline orchestration: full flow + parallel subagents
+│   └── book-pipeline/           # Pipeline orchestration: full flow, Agent Teams
 ├── agents/
-│   ├── book-planner.md            # Planner Agent (general, dynamically generates chapters)
 │   ├── book-writer.md             # Generic Writer: any chapter type, assigned from BOOK_PLAN.md
 │   ├── book-chapter-reviewer.md   # Chapter-by-chapter structure review (initial review)
 │   ├── book-technical-reviewer.md # Technical fact-checking (code logic / architecture / data validation)
 │   ├── book-verifier.md           # Automated structure verification
-│   ├── book-editor-in-chief.md    # Editor-in-Chief for consolidation
+│   ├── book-final-reviewer.md     # Final review of compiled book (Phase 10.5)
+│   ├── book-editor-in-chief.md    # Editor-in-Chief: P0/P1/P2 fixes + final compilation
 │   └── book-preface-writer.md     # Preface writing (Phase 9)
 ├── commands/
 │   └── make-book.md               # /tech-insider:make-book launch command
@@ -116,7 +116,8 @@ flowchart TD
     S8["8. Verification<br/>Automated checks"]
     S9["9. Proofreads + Preface<br/>Three proofreads in parallel + preface writing"]
     S95["9.5 Preface Review<br/>Accuracy, tone, scope check"]
-    S10["10. Consolidation<br/>In chunks: P0 → P1 → P2"]
+    S10["10. Synthesis<br/>P0 → P1 → P2 → Appendices → Compile"]
+    S105["10.5 Final Review<br/>Quality gate on compiled book"]
     S11["11. Delivery"]
 
     S1 --> S2 --> S3 --> S4 --> S45 --> S5 --> S6
@@ -124,7 +125,7 @@ flowchart TD
     S6 -->|Ready for publication| S8
     S7 -->|Re-initial review| S6
     S7 -->|Exceeds 2 rounds| S6
-    S8 --> S9 --> S95 --> S10 --> S11
+    S8 --> S9 --> S95 --> S10 --> S105 --> S11
 ```
 
 ## Chapter Structure Template
@@ -151,7 +152,7 @@ Here is what we learned from actual production, now built into the plugin:
 
 1. **Study reference books first** — Writing without reading reference material first causes style drift
 2. **Mermaid is the only choice** — No ASCII art; all diagrams must be renderable
-3. **Main Agent does not do the work** — Main only coordinates; all work is delegated to subagents
+3. **Lead does not do the work** — Lead only coordinates; all work is delegated to Agent Teams
 4. **Style guide must be created before writing** — Without unified terminology and structure, chapters will diverge
 5. **Content overlap must be resolved upfront** — Each concept gets one home chapter; others cross-reference only
 6. **Three proofreading passes** — Text proofreading is the first pass; cross-reference validation is the second; readability read-through is the third

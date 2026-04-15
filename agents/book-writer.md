@@ -15,7 +15,7 @@ You are spawned as a teammate by the pipeline orchestrator (Phase 5 or Phase 7).
 1. Read `STYLE_GUIDE.md` and `BOOK_PLAN.md` first
 2. Read `DEPENDENCIES.md` for chapter boundaries and cross-reference conventions
 3. Read `CODE_INDEX.md` for pre-computed code summaries, call graphs, and architecture maps. If `CODE_INDEX.md` does not exist, scan the codebase directly using `find`, `grep`, and `wc -l` to gather equivalent information
-4. From `BOOK_PLAN.md`, identify the chapters assigned to you (based on Writer type: foundation / core-loop / core-system / tools / integration)
+4. From `BOOK_PLAN.md`, identify the chapters assigned to you
 5. For each chapter, analyze the actual source code and write:
    - Opening metaphor/quote (`> "..."` format)
    - 1-3 Mermaid diagrams (graph TD, flowchart TD, sequenceDiagram, or classDiagram per STYLE_GUIDE)
