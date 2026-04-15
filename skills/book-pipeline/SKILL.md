@@ -42,18 +42,30 @@ Wait for mailbox message
 
 - **CRITICAL: Polling DEADLOCKS the mailbox.** `sleep`, `sleep && stat`, `Monitor("Wait 60s and check for file")` — any polling mechanism blocks incoming mailbox messages from teammates. The lead will never see the completion message because it's busy polling. **This is a deadlock, not a timeout.**
 - **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check output files, do NOT grep for completion strings. Just yield and wait for the system to deliver the teammate's completion message.
-- When a teammate goes idle, it means it's done. Send ONE `shutdown_request`, wait for confirmation, then proceed.
+- When a teammate goes idle (mailbox notification received), send ONE structured shutdown request:
+  ```
+  SendMessage({ to: "<name>", summary: "shutdown", message: { type: "shutdown_request", request_id: "shutdown-1", approve: true } })
+  ```
+  Then wait for the idle confirmation before proceeding.
 
 ### Phase Transition (Shutdown Old → Create Tasks → Spawn All New)
 Between every phase that uses Agent Teams:
-1. **Shutdown old teammates**: For each active teammate from the previous phase, send ONE `shutdown_request` via `SendMessage`. **Send only ONE request per teammate.**
+1. **Shutdown old teammates**: For each active teammate, send a structured shutdown request:
+   ```
+   SendMessage({
+     to: "<teammate-name>",
+     summary: "shutdown",
+     message: { type: "shutdown_request", request_id: "shutdown-1", approve: true }
+   })
+   ```
+   **Use the structured message format above — NOT a plain string.** **One request per teammate. Do NOT send multiple.**
 2. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
 3. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
 4. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
 5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
    - **CRITICAL: Polling blocks the mailbox.** If the lead uses `sleep`, `Monitor`, or any polling mechanism, incoming mailbox messages from teammates cannot be delivered — creating a DEADLOCK. The lead will never see the completion message because it's busy polling.
    - **The lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let the system deliver teammate messages to your mailbox.
-6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE `shutdown_request` to each, wait for confirmations.
+6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE structured shutdown request per teammate (see step 1 format), wait for confirmations.
 
 **Lead's only jobs: create tasks, spawn ALL new teammates in parallel, then yield and wait for mailbox. Never poll.**
 
@@ -66,7 +78,7 @@ Between every phase that uses Agent Teams:
 Every phase ends with: **Wait for teammate idle notification → send ONE `shutdown_request` → wait for confirmation → proceed to next phase.** Refer to "Waiting Discipline" section above for the full rules.
 
 ### Final Cleanup (Phase 11 only)
-`TeamDelete({})` — delete ONCE at the very end. Only after ALL teammates are shut down.
+`TeamDelete({})` — delete ONCE at the very end. **No parameters needed** — the tool automatically targets the current team. If it fails with "active members" error, some teammates are still running; wait for their idle notifications, send shutdown_request to each, then retry `TeamDelete({})`.
 
 ### Prohibited Operations
 - **NEVER** create a second team — ONE team throughout the pipeline
