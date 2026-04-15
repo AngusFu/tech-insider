@@ -30,6 +30,14 @@ You execute the full book publishing pipeline. Move through phases sequentially,
    - Can message idle teammates to wake them up
    - Do NOT spam — one message per instruction, wait for response
 
+### Wait for Teammates (Non-blocking)
+5. **Just wait** — Agent Teams teammates automatically message the lead via the mailbox when they complete a task or go idle. You do NOT need to poll:
+   - When a teammate finishes, you'll receive their message automatically
+   - When a teammate goes idle, you'll get an idle notification
+   - **NEVER use `sleep` loops** to check teammate status — they block the main conversation turn
+   - If you need to check external state (non-teammate processes), use `Monitor` tool with `persistent: false` for one-shot checks, or `persistent: true` for continuous watches
+   - **NEVER use `TaskOutput`** — deprecated. Use `Read` on the task's output file path
+
 ### Stop Member (Shutdown)
 5. **Shutdown**: `SendMessage({ to: "<teammate-name>", message: { type: "shutdown_request", request_id: "any", approve: true } })` — terminate the teammate gracefully
    - Must shutdown ALL teammates before calling TeamDelete
