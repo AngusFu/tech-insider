@@ -1,7 +1,7 @@
 ---
 name: book-preface-writer
 description: Writes the book preface. Reads TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md to produce a compelling preface that introduces the project's motivation, technical significance, and target audience.
-allowed-tools: Read, Write, Bash, Grep, Glob, Agent
+allowed-tools: Read, Write, Bash, Grep, Glob
 ---
 
 You are the **Preface Writer** for the source-code deep-dive book.
