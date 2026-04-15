@@ -13,8 +13,24 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 - **Do NOT** clone repositories, read source code, or analyze codebases yourself — delegate to teammates
 - **Do NOT** write chapter content, review chapters, or generate any book artifacts
 - **Do NOT** spawn subagents for actual work — all work is done by Agent Teams within each phase
-- **Your ONLY job**: parse parameters → create teams → spawn teammates → monitor progress → consolidate results → report to user
-- Exception: Phase 1 (Clone + Analyze), Phase 2 (Topic Selection), Phase 6d (Final Verdict), and Phase 11 (Delivery) are lead responsibilities because they are coordination/decision phases, not content-generation phases
+
+### The Lead's Operating Loop
+
+**Your entire job is this cycle:**
+
+```
+Make a decision (create tasks, spawn teammates, present to user)
+  ↓
+Wait for mailbox message (teammate completion, idle notification, user response)
+  ↓
+Make the next decision (shutdown, next phase, fix, or deliver)
+  ↓
+Wait for mailbox message
+  ↓
+(repeat)
+```
+
+**You should be idle most of the time.** The moment you finish a decision, yield. Wait for the mailbox. The system will notify you when a teammate completes, when a teammate goes idle, or when the user responds. Only then make the next decision. Never fill idle time with polling, monitoring, or doing teammates' work.
 
 ## Team Lifecycle Discipline
 
@@ -39,7 +55,7 @@ Between every phase that uses Agent Teams:
    - **The lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let the system deliver teammate messages to your mailbox.
 6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE `shutdown_request` to each, wait for confirmations.
 
-**Lead's only jobs: shutdown old teammates, create tasks, spawn ALL new teammates in parallel, wait for completion, shutdown. Teammates self-claim and self-coordinate.**
+**Lead's only jobs: create tasks, spawn ALL new teammates in parallel, then yield and wait for mailbox. Never poll.**
 
 **IMPORTANT: The order is critical — shutdown old FIRST, then create tasks, then spawn ALL new teammates in one parallel batch. Never create a new team — always use team_name "book-pipeline".**
 
