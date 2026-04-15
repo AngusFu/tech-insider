@@ -1,7 +1,7 @@
 ---
 name: book-proofreader
 description: Proofreader for deep source code analysis books. Used after chapters pass reviewer approval. Handles text proofreading, cross-reference validation, and readability checks. Supports first / second / third proofreading modes.
-user-invocable: true
+user-invocable: false
 ---
 
 # Deep Source Code Analysis Book — Three-Pass Proofreading

@@ -1,7 +1,7 @@
 ---
 name: book-consistency-reviewer
 description: Cross-chapter consistency reviewer for deep source code analysis books. Used after all chapters pass initial review. Checks terminology consistency, content deduplication, data contradictions, design decision contradictions, and cross-reference accuracy.
-user-invocable: true
+user-invocable: false
 ---
 
 # Deep Source Code Analysis Book — Cross-Chapter Consistency Review

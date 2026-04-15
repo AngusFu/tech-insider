@@ -1,7 +1,7 @@
 ---
 name: book-planner
 description: Planner for deep source-code analysis books. Use when the user requests writing a book based on an open-source codebase. Responsible for analyzing the codebase, creating the book outline, defining chapter responsibilities, and establishing a writing style guide.
-user-invocable: true
+user-invocable: false
 ---
 
 # Deep Source-Code Analysis Book — Planner

@@ -1,7 +1,7 @@
 ---
 name: book-writer-template
 description: Chapter writing guidelines for deep source code analysis books. Defines chapter structure, writing rules, Mermaid conventions, and code citation format. This is a REFERENCE document for Writer agents — NOT a spawnable skill.
-user-invocable: true
+user-invocable: false
 ---
 
 # Deep Source Code Analysis Book — Chapter Writing Guidelines
