@@ -20,17 +20,18 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 
 **The pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at the end.**
 
-### Phase Transition (Create Tasks → Spawn → Auto-claim → Shutdown)
+### Phase Transition (Shutdown Old → Create Tasks → Spawn All New)
 Between every phase that uses Agent Teams:
-1. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions. **Create tasks BEFORE spawning teammates.**
-2. **Spawn teammates**: `Agent({ team_name: "book-pipeline", name: "<new-name>", subagent_type: "...", prompt: "Pick up available tasks from the shared task list and work through them. When no tasks remain, shut down.", mode: "bypassPermissions" })` — teammates auto-claim tasks immediately
-3. **Wait** — teammates auto-claim via file locking, complete tasks, auto-claim next. They auto-message lead via mailbox when done.
-4. **Shutdown idle teammates**: When all tasks are done and teammates go idle (no more tasks), send ONE `shutdown_request` to each via `SendMessage`. **One request per teammate, no repeats.**
-5. **Wait for shutdown confirmations** — system may take a moment to process. Once confirmed, proceed to next phase.
+1. **Shutdown old teammates**: For each active teammate from the previous phase, send ONE `shutdown_request` via `SendMessage`. **Send only ONE request per teammate.**
+2. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
+3. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
+4. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
+5. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
+6. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE `shutdown_request` to each, wait for confirmations.
 
-**Lead's only jobs: create tasks with clear descriptions, spawn the right number of teammates, wait, then shutdown. Teammates self-claim and self-coordinate — the lead does NOT manually assign tasks.**
+**Lead's only jobs: shutdown old teammates, create tasks, spawn ALL new teammates in parallel, wait for completion, shutdown. Teammates self-claim and self-coordinate.**
 
-**IMPORTANT: After sending shutdown_request, WAIT. Do NOT send repeated requests. Do NOT try to create a new team. Do NOT do the work yourself. Just wait for the system to process the shutdown.**
+**IMPORTANT: The order is critical — shutdown old FIRST, then create tasks, then spawn ALL new teammates in one parallel batch. Never create a new team — always use team_name "book-pipeline".**
 
 ### Initial Team Creation (Phase 3 only)
 `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })` — create ONCE.
@@ -204,10 +205,10 @@ Output: chapter files `.work/chapters/chXX-*.md`
    - Create task for foundation chapters with details from `BOOK_PLAN.md` (titles, descriptions, key files), `DEPENDENCIES.md` (boundaries), `STYLE_GUIDE.md` (conventions), `CODE_INDEX.md` (code summaries)
    - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set the book's tone — exemplary structure compliance required. Pick up the task from the shared task list. When done, shut down."
    - Wait for completion → shutdown → confirm
-3. **Checkpoint**: After Batch 1 completes, review output for style/depth/tone alignment with STYLE_GUIDE.md. If acceptable, proceed to Batch 2.
+3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone. If acceptable, proceed to Batch 2. If issues found, list them for the user to decide whether to fix before Batch 2.
 4. **Batch 2 (All remaining chapters)**:
    - Create tasks — one per remaining chapter, each with details from `BOOK_PLAN.md`, `DEPENDENCIES.md`, `STYLE_GUIDE.md`, `CODE_INDEX.md`, plus path to Batch 1 output as style reference
-   - Spawn up to 3 **book-writer** teammates with prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions. Use Batch 1 output as style reference. When no tasks remain, shut down."
+   - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions. Use Batch 1 output as style reference. When no tasks remain, shut down."
    - Each writer auto-claims, writes, auto-claims next — repeat until done
    - Writers go idle → send shutdown_request, wait for confirmation
 5. Collect results on completion; show progress to the user
@@ -273,9 +274,14 @@ Output: `.work/review-consistency.md`
 
 1. Read `BOOK_PLAN.md` to identify Parts (typically 4-5 Parts)
 2. Create tasks in the shared task list — one task per Part: "Review consistency of all chapters within Part N. Check terminology, content deduplication, data consistency, design decision contradictions, cross-reference accuracy. Write report to `.work/review-consistency-partN.md`."
-3. Spawn up to 4 **book-consistency-reviewer** teammates (if fewer Parts than 4, spawn one per Part) with prompt: "Pick up available consistency review tasks. Review only chapters within your assigned Part. Write report to `.work/review-consistency-partN.md`. When no tasks remain, shut down."
+3. Spawn up to 4 **book-consistency-reviewer** teammates (if fewer Parts than 4, spawn one per Part). **Spawn ALL in parallel.**
 4. Each reviewer auto-claims a Part, writes report, then auto-claims the next Part if available — repeat until all Parts are done
-5. After all Part reviewers go idle, send shutdown_request, wait for confirmation, then **the pipeline lead consolidates**: read all `.work/review-consistency-partN.md` files and merge into a single `.work/review-consistency.md`
+5. After all Part reviewers go idle, send shutdown_request, wait for confirmation.
+6. **Merge strategy**: The pipeline lead consolidates all `.work/review-consistency-partN.md` files into `.work/review-consistency.md`:
+   - If the same issue appears in multiple Parts → list once with "affects all Parts"
+   - If Part-specific → list under that Part section
+   - If contradictions between Parts → flag as P0
+   - Include a summary table: total issues by severity
 
 #### 6d. Final Review (Overall Quality — Done by Pipeline Agent)
 
@@ -335,12 +341,12 @@ Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md`
 
 **4 different teammates, 4 different tasks — spawn each explicitly with mode, do NOT use auto-claim for this phase.**
 
-1. Spawn 4 teammates with explicit task instructions:
-   - **book-proofreader**: prompt = "Execute `first-proofread` mode only: text proofreading. Write `.work/proofread-1.md`."
-   - **book-proofreader**: prompt = "Execute `second-proofread` mode only: cross-reference validation. Write `.work/proofread-2.md`."
-   - **book-proofreader**: prompt = "Execute `readability-pass` mode only: read-through. Write `.work/proofread-3.md`."
-   - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md."
-2. All 4 work in parallel. When each goes idle, send shutdown_request, wait for confirmations.
+3. Spawn 4 teammates **IN PARALLEL** with explicit mode instructions:
+   - **book-proofreader**: prompt = "Execute `first-proofread` mode only: text proofreading (typos, punctuation, terminology, Mermaid syntax). Write `.work/proofread-1.md`."
+   - **book-proofreader**: prompt = "Execute `second-proofread` mode only: cross-reference validation (cross-references, content overlap, design decision consistency). Write `.work/proofread-2.md`."
+   - **book-proofreader**: prompt = "Execute `readability-pass` mode only: read-through (transitions, narrative coherence, pacing, tone). Write `.work/proofread-3.md`."
+   - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md. 1-2 pages, no Mermaid, no code citations."
+4. All 4 work in parallel. When each goes idle, send ONE `shutdown_request`, wait for confirmations.
 3. Report to the user when all are complete
 
 ### Phase 9.5: Preface Review
@@ -383,7 +389,9 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 
 1. Create task: "Review `book-final.md`: ASCII art residue (grep for box-drawing chars), structural completeness (metaphor, Mermaid, reflection questions, principles per chapter), decision box format (blockquote only), Mermaid syntax validation, cross-reference integrity, overall quality (word count anomalies, TODOs). Write `.work/final-review.md` with PASS/FAIL verdict."
 2. Spawn 1 **book-final-reviewer** teammate. When idle, shutdown → confirm.
-3. If FAIL: list blockers, get user confirmation, fix before Phase 11
+3. **Verdict handling**:
+   - **PASS**: Proceed to Phase 11 (Delivery)
+   - **FAIL**: List all blockers to user with severity ratings. Fix P0 issues before delivery. If user confirms, proceed to Phase 11 despite FAIL.
 
 ### Phase 11: Delivery
 
