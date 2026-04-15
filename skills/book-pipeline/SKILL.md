@@ -20,6 +20,14 @@ You execute the full book publishing pipeline. Move through phases sequentially,
 
 **The pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at the end.**
 
+### Waiting Discipline (Applies to EVERY phase)
+
+**Whenever the lead spawns a teammate, the lead MUST just wait for the mailbox message.** No exceptions.
+
+- **CRITICAL: Polling DEADLOCKS the mailbox.** `sleep`, `sleep && stat`, `Monitor("Wait 60s and check for file")` — any polling mechanism blocks incoming mailbox messages from teammates. The lead will never see the completion message because it's busy polling. **This is a deadlock, not a timeout.**
+- **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check output files, do NOT grep for completion strings. Just yield and wait for the system to deliver the teammate's completion message.
+- When a teammate goes idle, it means it's done. Send ONE `shutdown_request`, wait for confirmation, then proceed.
+
 ### Phase Transition (Shutdown Old → Create Tasks → Spawn All New)
 Between every phase that uses Agent Teams:
 1. **Shutdown old teammates**: For each active teammate from the previous phase, send ONE `shutdown_request` via `SendMessage`. **Send only ONE request per teammate.**
