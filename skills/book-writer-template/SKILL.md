@@ -1,14 +1,14 @@
 ---
 name: book-writer-template
-description: Chapter writing guidelines for deep source code analysis books. Defines chapter structure, writing rules, Mermaid conventions, and code citation format. This is a REFERENCE document for Writer agents — NOT a spawnable skill.
+description: Chapter writing guidelines for deep source code analysis books. Defines chapter structure, writing rules, Mermaid conventions, code citation format. REFERENCE document for Writer agents — NOT spawnable skill.
 user-invocable: false
 ---
 
 # Deep Source Code Analysis Book — Chapter Writing Guidelines
 
-**This is a reference document, NOT a spawnable skill.** The `book-writer` agent inherits the rules defined here. When spawning Writers, the pipeline passes these conventions via the team context.
+**This is reference document, NOT spawnable skill.** `book-writer` agent inherits rules defined here. When spawning Writers, pipeline passes these conventions via team context.
 
-You are a chapter Writer for the book. Given a chapter title and reference materials, write the chapter according to STYLE_GUIDE.md standards.
+You are chapter Writer for book. Given chapter title and reference materials, write chapter according to STYLE_GUIDE.md standards.
 
 ## Chapter Structure (Strict)
 
@@ -17,11 +17,11 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 ```markdown
 # Chapter XX: Title
 
-> Opening metaphor or quote (one-line block quote using > format, relevant to the chapter theme)
+> Opening metaphor or quote (one-line block quote using > format, relevant to chapter theme)
 
-\`\`\`mermaid
+```mermaid
 (1-3 architecture / flowchart / state diagrams, choose appropriate types per STYLE_GUIDE)
-\`\`\`
+```
 
 ## XX.1 Subsection Title
 (Technical deep dive, code citations in file:line format)
@@ -57,18 +57,18 @@ Every chapter must follow this order exactly. No sections may be added, removed,
 
 ### Chapter Theme Adaptation
 
-Each chapter has a **Theme** in `BOOK_PLAN.md`. Adapt your writing approach accordingly:
+Each chapter has **Theme** in `BOOK_PLAN.md`. Adapt writing approach accordingly:
 
 | Theme | Tone | Code Density | Focus |
 |-------|------|-------------|-------|
 | **narrative foundation** | Storytelling, accessible, sets context | Low — use diagrams and high-level analysis | Why this project exists, what problem it solves, architectural overview |
-| **core architecture deep dive** | Rigorous, analytical, technical | High — deep code analysis, line-by-line where needed | How the main loop/engine works, key abstractions, data flow |
+| **core architecture deep dive** | Rigorous, analytical, technical | High — deep code analysis, line-by-line where needed | How main loop/engine works, key abstractions, data flow |
 | **subsystem internals** | Practical, component-focused | Medium — focus on interfaces and interactions | How subsystems interact, extensibility patterns, plugin architecture |
 | **production engineering** | Pragmatic, operational | Medium — real-world configs, deployment scripts | Production concerns, trade-offs, scaling, testing, CI/CD |
 
 ### Code Citations
 - Format: `file/path:line-range`, e.g. `src/core/engine.ts:142-156`
-- Code blocks must not exceed 30 lines; include only the critical portions
+- Code blocks must not exceed 30 lines; include only critical portions
 - Cite actual source code, never pseudocode
 - Verify line numbers with `grep -n`
 
@@ -83,7 +83,7 @@ Each chapter has a **Theme** in `BOOK_PLAN.md`. Adapt your writing approach acco
 - Node labels in Chinese
 - Subgraphs use `subgraph` + Chinese title
 - Do not mix `graph` and `flowchart` syntax
-- All diagrams are validated by `book-verifier` — use `mmdc -i file.mmd -o /dev/null` to self-check before writing
+- All diagrams validated by `book-verifier` — use `mmdc -i file.mmd -o /dev/null` to self-check before writing
 
 ### Design Decision Boxes
 - **MUST use blockquote format** (lines starting with `>`) — see template above
@@ -96,7 +96,7 @@ Each chapter has a **Theme** in `BOOK_PLAN.md`. Adapt your writing approach acco
 - On first occurrence use "Chinese (English)" format
 - Subsequently use English only
 - Keep technical terms in English (Agent, Tool, Toolset, Skill, Registry, etc.)
-- Do not replace "Tool" with a Chinese translation, or "Skill" with a Chinese translation
+- Do not replace "Tool" with Chinese translation, or "Skill" with Chinese translation
 
 ### Tone
 - Concise and direct
@@ -111,21 +111,21 @@ Each chapter has a **Theme** in `BOOK_PLAN.md`. Adapt your writing approach acco
 - Tutorial content ("how to install", "how to configure")
 - Prompt technique lists
 - "First... second... finally" narrative sequences
-- Table of contents at the start of a chapter
+- Table of contents at start of chapter
 
 ## Content Overlap Handling
 
-Each concept is analyzed in depth in its **primary chapter only**:
-- When other chapters mention the concept, one sentence + "see Chapter X"
-- If another chapter requests a cross-reference to your section, ensure your chapter contains a deep analysis of that concept
+Each concept analyzed in depth in its **primary chapter only**:
+- When other chapters mention concept, one sentence + "see Chapter X"
+- If another chapter requests cross-reference to your section, ensure your chapter contains deep analysis of that concept
 
 ## Quantitative Data
 
 - Lines of code: actual data from `wc -l`
 - File sizes: actual data from `ls -lh`
 - File counts: actual data from `find`
-- Test counts: actual data from the project's test framework (pytest, jest, go test, cargo test, etc.)
+- Test counts: actual data from project's test framework (pytest, jest, go test, cargo test, etc.)
 
 ## Output
 
-Write the chapter to `.work/chapters/chXX-chapter-slug.md` in the book output directory.
+Write chapter to `.work/chapters/chXX-chapter-slug.md` in book output directory.

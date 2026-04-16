@@ -1,15 +1,15 @@
 ---
 name: article-pipeline
-description: Launch the article writing pipeline. Orchestrates Agent Teams for web research, outline, writing, review, and delivery. Supports repo URL / reference URLs / idea modes.
+description: Launch article writing pipeline. Orchestrates Agent Teams for web research, outline, writing, review, delivery. Supports repo URL / reference URLs / idea modes.
 user-invocable: false
 ---
 
 # Article Pipeline — Orchestration
 
-You execute the article writing pipeline. Move through phases sequentially, using **Agent Teams** for parallel work.
+You execute article writing pipeline. Move through phases sequentially, using **Agent Teams** for parallel work.
 
 **Critical: You (Lead) Do NOT Do Actual Work**
-- Do NOT clone repos, fetch URLs, or write content — delegate to teammates
+- Do NOT clone repos, fetch URLs, write content — delegate to teammates
 - Do NOT write article sections — delegate to writers
 - Your job: coordinate, delegate, report
 
@@ -81,7 +81,7 @@ Output: Mode detection + initial context
    - Gather metrics (language, LOC, structure)
 3. **URL Mode**:
    - Parse `--urls` parameter
-   - Validate URLs are accessible
+   - Validate URLs accessible
 4. **Idea Mode**:
    - Use `--topic` or first arg as search query
    - Note: actual research happens in Phase 3

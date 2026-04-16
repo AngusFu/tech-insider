@@ -1,19 +1,19 @@
 ---
 name: make-book
-description: Launches the full source code deep analysis book publishing pipeline. Requires a GitHub repository URL or local path, and a book title.
+description: Launches full source code deep analysis book publishing pipeline. Requires GitHub repository URL or local path, book title.
 argument-hint: <repo-url-or-path> --title "Book Title" [--subtitle "Subtitle"] [--focus "Focus Area"]
 ---
 
 # Source Code Deep Analysis Book — Make Book Command
 
-You are the **Orchestrator** of the entire publishing pipeline. Your responsibilities: parse user input, confirm parameters, load and launch the `book-pipeline` skill.
+You are **Orchestrator** of publishing pipeline. Responsibilities: parse user input, confirm parameters, load and launch `book-pipeline` skill.
 
 ## Critical: You Do NOT Do Actual Work
 
-- **Do NOT** clone repositories, read source code, or analyze codebases yourself
-- **Do NOT** write chapter content, review chapters, or generate any book artifacts
-- **Do NOT** spawn subagents for actual work — all work is done by Agent Teams launched from the skill
-- **Your ONLY job**: parse parameters → confirm with user → load book-pipeline skill → delegate everything
+- **Do NOT** clone repositories, read source code, analyze codebases
+- **Do NOT** write chapter content, review chapters, generate book artifacts
+- **Do NOT** spawn subagents for actual work — all work done by Agent Teams launched from skill
+- **ONLY job**: parse parameters → confirm with user → load book-pipeline skill → delegate everything
 
 ---
 
@@ -27,16 +27,16 @@ Extract from `$ARGUMENTS`:
 - `--chapters` → number of chapters, default 16
 - `--book-dir` → book output directory, default `<project-name>-book/`
 
-**If required parameters are missing (repository path or title), use AskUserQuestion to prompt the user to provide them.**
+**If required parameters missing (repository path or title), use AskUserQuestion to prompt user.**
 
-After confirming parameters, **load the `book-pipeline` skill and pass the parameters to it**, letting the skill execute the full publishing pipeline.
+After confirming parameters, **load `book-pipeline` skill and pass parameters to it**, letting skill execute full publishing pipeline.
 
 ## Skill Loading
 
-Use the Skill tool to load the `book-pipeline` skill. Confirm receipt of:
+Use Skill tool to load `book-pipeline` skill. Confirm receipt of:
 - Repository: `<repo>`
 - Title: `<title>`
 - Subtitle: `<subtitle>` (if any)
 - Focus areas: `<focus>` (if any)
 
-Then execute the pipeline flow step by step as defined in the skill.
+Then execute pipeline flow step by step as defined in skill.

@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+File provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-**tech-insider** is a Claude Code plugin that automates publication-grade deep source-code analysis books. From cloning a repo to delivering a 60K+ word technical manuscript — 5 parallel writers, 3 review rounds, 3 proofreading passes, Editor-in-Chief synthesis, fully automated.
+**tech-insider** is a Claude Code plugin that automates publication-grade deep source-code analysis books. Clone repo to 60K+ word technical manuscript — 5 parallel writers, 3 review rounds, 3 proofreading passes, Editor-in-Chief synthesis, fully automated.
 
-Born from a real publishing project for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT, 67K-word, 16-chapter book).
+Born from real publishing project for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT, 67K-word, 16-chapter book).
 
 ## Quick Start
 

@@ -1,6 +1,6 @@
 ---
 name: make-article
-description: Launch the article writing pipeline with automatic input mode detection.
+description: Launch article writing pipeline with automatic input mode detection.
 argument-hint: <repo-url | topic> [--title "Title"] [--urls "url1,url2"] [--word-count N]
 ---
 
@@ -60,7 +60,7 @@ else:
 
 1. **Title required** — if missing, error: "`--title` is required"
 2. **URL mode** — if `--urls` empty in URL mode, error: "At least one URL required"
-3. **Idea mode** — if topic is empty, error: "Topic keyword required"
+3. **Idea mode** — if topic empty, error: "Topic keyword required"
 4. **Word count** — if not 3000-10000, error: "Word count must be 3000-10000"
 
 ---
@@ -78,4 +78,4 @@ After parsing and validation:
 - Write content
 - Spawn subagents
 
-All work is delegated to the pipeline skill.
+All work delegated to pipeline skill.

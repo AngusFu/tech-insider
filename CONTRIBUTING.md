@@ -3,7 +3,7 @@
 ## Development
 
 ```bash
-# Clone the repo
+# Clone repo
 git clone https://github.com/AngusFu/tech-insider.git
 cd tech-insider
 
@@ -37,19 +37,19 @@ tech-insider/
 └── CHANGELOG.md
 ```
 
-## Adding a New Skill
+## Adding New Skill
 
 1. Create `skills/<skill-name>/SKILL.md`
 2. Add YAML frontmatter with `name`, `description`, `user-invocable`
-3. Write actionable instructions in the body
+3. Write actionable instructions in body
 
-## Adding a New Agent
+## Adding New Agent
 
 1. Create `agents/<agent-name>.md`
 2. Add YAML frontmatter with `name`, `description`, `allowed-tools`
-3. Write the agent's system prompt in the body
+3. Write agent's system prompt in body
 
-## Adding a New Command
+## Adding New Command
 
 1. Create `commands/<command-name>.md`
 2. Add YAML frontmatter with `name`, `description`, `argument-hint`
@@ -57,7 +57,7 @@ tech-insider/
 
 ## Submitting Changes
 
-1. Fork the repository
-2. Create a feature branch
+1. Fork repository
+2. Create feature branch
 3. Test with `claude --plugin-dir .`
-4. Submit a pull request
+4. Submit pull request

@@ -1,12 +1,12 @@
 ---
 name: agent-teams-guide
-description: Reference guide for proper Agent Teams usage in tech-insider pipeline. Use when spawning teammates, managing shutdown, or debugging team lifecycle issues. Covers lead execute loop, shutdown protocol, task distribution, and prohibited operations.
+description: Reference guide for Agent Teams usage in tech-insider pipeline. Use when spawning teammates, managing shutdown, or debugging team lifecycle issues. Covers lead execute loop, shutdown protocol, task distribution, prohibited operations.
 ---
 
 # Agent Teams Guide — tech-insider
 
-This skill documents the **correct usage patterns** for Agent Teams within the tech-insider pipeline. Read this when:
-- Spawning teammates for a new phase
+This skill documents **correct usage patterns** for Agent Teams in tech-insider pipeline. Read when:
+- Spawning teammates for new phase
 - Managing shutdown between phases
 - Debugging "active members" errors on `TeamDelete`
 - Uncertain about lead vs teammate responsibilities
@@ -21,12 +21,12 @@ This skill documents the **correct usage patterns** for Agent Teams within the t
 Decide → SendMessage → YIELD → Wait for mailbox → Repeat
 ```
 
-**Critical**: `SendMessage` to a teammate is **always the last action** of your turn. Any tool call after it blocks the mailbox and causes a **deadlock**.
+**Critical**: `SendMessage` to teammate is **always last action** of turn. Any tool call after blocks mailbox, causes **deadlock**.
 
 **Correct sequence**:
 1. Decide: "Spawn 4 reviewers for Phase 6a"
 2. Create tasks via `TaskCreate`
-3. Spawn 4 teammates via `Agent` (in parallel)
+3. Spawn 4 teammates via `Agent` (parallel)
 4. **SendMessage** to assign tasks
 5. **YIELD** — no more tool calls
 6. Wait for `idle_notification` or task completion in mailbox
@@ -66,16 +66,16 @@ Between every phase that uses Agent Teams:
    })
    ```
    - One request per teammate — never race multiple requests to same teammate
-   - Use structured message format above — NOT a plain string
+   - Use structured message format above — NOT plain string
 
 2. **YIELD IMMEDIATELY** after each `SendMessage`
-   - Your turn is over
-   - Do NOT proceed to step 3 in the same turn
+   - Turn over
+   - Do NOT proceed to step 3 in same turn
 
 3. **Wait for all shutdowns**
    - Teammates confirm via `shutdown_response` in mailbox
-   - System takes a moment to process
-   - Do NOT proceed until all old teammates are confirmed gone (`idle_notification` received)
+   - System takes moment to process
+   - Do NOT proceed until all old teammates confirmed gone (`idle_notification` received)
 
 4. **Create tasks** for next phase via `TaskCreate`
 
@@ -94,7 +94,7 @@ Between every phase that uses Agent Teams:
 
 ## Lead's Role
 
-**The lead does NOT execute work.** All execution, review, and validation are delegated to teammates via `SendMessage`.
+**Lead does NOT execute work.** All execution, review, validation delegated to teammates via `SendMessage`.
 
 | Lead Does | Lead Does NOT |
 |-----------|---------------|
@@ -145,7 +145,7 @@ Mailbox: { type: "shutdown_response", request_id: "shutdown-1", approve: true }
 
 ## State Sync Gotcha
 
-**Problem**: Framework delays shutdown confirmation in the team directory. `TeamDelete` fails with "active member" if called too soon.
+**Problem**: Framework delays shutdown confirmation in team directory. `TeamDelete` fails with "active member" if called too soon.
 
 **Solution**: Always wait for **explicit** `shutdown_response` from every teammate before calling `TeamDelete`.
 
@@ -198,7 +198,7 @@ TeamDelete (only at very end)
 SendMessage to reviewer → Bash("sleep 5 && cat output") → Read result
 ```
 
-**Why wrong**: `Bash` after `SendMessage` blocks the mailbox. Reviewer's completion message cannot be delivered — deadlock.
+**Why wrong**: `Bash` after `SendMessage` blocks mailbox. Reviewer's completion message cannot be delivered — deadlock.
 
 ### ✅ Correct: Phase Transition
 
@@ -224,7 +224,7 @@ Bash("rm -rf ~/.claude/teams/doc-verify")
 
 ## Memory Context
 
-This skill was created from feedback captured on 2026-04-16 after violating shutdown protocol during `doc-verify` team:
+This skill created from feedback captured on 2026-04-16 after violating shutdown protocol during `doc-verify` team:
 - Sent shutdown_request → then called `TeamDelete` → failed with "active members"
 - Sent shutdown_request → then ran `Bash` to check status → blocked mailbox
 - Manually deleted `~/.claude/teams/doc-verify` with `rm -rf` → bypassed protocol

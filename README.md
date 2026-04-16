@@ -1,10 +1,10 @@
 # Tech Insider — Deep Source Code Analysis Book Generator
 
-An automated, publication-grade technical book pipeline powered by Agent Teams. From cloning a repository to delivering a finished manuscript — fully automated end-to-end.
+Automated, publication-grade technical book pipeline powered by Agent Teams. Clone repository to finished manuscript — fully automated end-to-end.
 
 ## Inspiration
 
-This plugin was born from a real publishing project: using Claude Code's Agent Teams model, we produced a 67,000-word, 16-chapter, 4-appendix deep analysis book for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT). The process included:
+Plugin born from real publishing project: Claude Code Agent Teams model produced 67,000-word, 16-chapter, 4-appendix deep analysis book for [Hermes Agent](https://github.com/NousResearch/hermes-agent) (50K+ stars, MIT). Process included:
 
 - Up to 4 generic Writers writing in parallel (staged: 1 first, then up to 3)
 - 4 review rounds (initial chapter-by-chapter structure + technical fact-checking + re-review for cross-chapter consistency + final review for overall quality)
@@ -12,7 +12,7 @@ This plugin was born from a real publishing project: using Claude Code's Agent T
 - 1 Editor-in-Chief for final consolidation
 - Cover design, preface writing, appendix composition
 
-This plugin packages that entire workflow into a reusable Claude Code plugin.
+Plugin packages entire workflow into reusable Claude Code plugin.
 
 ## Quick Start
 
@@ -49,7 +49,7 @@ claude --plugin-dir /path/to/tech-insider
 | `/tech-insider:make-book` | Command | Orchestrates Agent Teams for parallel execution | Full book production |
 | `book-pipeline` skill | Skill tool | Orchestrates Agent Teams for parallel execution | Same as above, skill entry point |
 
-Both share the same pipeline logic (`skills/book-pipeline/SKILL.md`). The command only handles parameter parsing before loading the skill.
+Both share same pipeline logic (`skills/book-pipeline/SKILL.md`). Command handles parameter parsing before loading skill.
 
 ## Architecture
 
@@ -152,7 +152,7 @@ Each chapter strictly follows:
 
 ## Lessons Learned (from the Hermes Project)
 
-Here is what we learned from actual production, now built into the plugin:
+Learned from actual production, built into plugin:
 
 1. **Study reference books first** — Writing without reading reference material first causes style drift
 2. **Mermaid is the only choice** — No ASCII art; all diagrams must be renderable

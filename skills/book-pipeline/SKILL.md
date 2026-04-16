@@ -1,59 +1,59 @@
 ---
 name: book-pipeline
-description: Launch the deep source-code-analysis book publishing pipeline. Orchestrates Agent Teams working in parallel through the full flow from clone to final draft. Same as /tech-insider:make-book command.
+description: Launch deep source-code-analysis book publishing pipeline. Orchestrates Agent Teams working in parallel through full flow from clone to final draft. Same as /tech-insider:make-book command.
 user-invocable: true
 ---
 
 # Deep Source-Code Analysis Book — Pipeline Orchestration
 
-You execute the full book publishing pipeline. Move through phases sequentially, using **Agent Teams** for parallel work within each phase.
+You execute full book publishing pipeline. Move through phases sequentially, using **Agent Teams** for parallel work within each phase.
 
 ## Critical: You (Lead) Do NOT Do Actual Work
 
-- **Do NOT** clone repositories, read source code, or analyze codebases yourself — delegate to teammates
-- **Do NOT** write chapter content, review chapters, or generate any book artifacts
-- **Do NOT** spawn subagents for actual work — all work is done by Agent Teams within each phase
+- **Do NOT** clone repositories, read source code, analyze codebases yourself — delegate to teammates
+- **Do NOT** write chapter content, review chapters, generate any book artifacts
+- **Do NOT** spawn subagents for actual work — all work done by Agent Teams within each phase
 
 ### The Lead's Operating Loop
 
 **Your entire job is this cycle:**
 
 ```
-Make a decision (create tasks, spawn teammates, present to user)
+Make decision (create tasks, spawn teammates, present to user)
   ↓
 Wait for mailbox message (teammate completion, idle notification, user response)
   ↓
-Make the next decision (shutdown, next phase, fix, or deliver)
+Make next decision (shutdown, next phase, fix, deliver)
   ↓
 Wait for mailbox message
   ↓
 (repeat)
 ```
 
-**You should be idle most of the time.** The moment you finish a decision, yield. Wait for the mailbox. The system will notify you when a teammate completes, when a teammate goes idle, or when the user responds. Only then make the next decision. Never fill idle time with polling, monitoring, or doing teammates' work.
+**You should be idle most of the time.** Moment you finish decision, yield. Wait for mailbox. System notifies when teammate completes, when teammate goes idle, or when user responds. Only then make next decision. Never fill idle time with polling, monitoring, or doing teammates' work.
 
-**CRITICAL: After sending a message to any teammate (SendMessage), you MUST STOP and yield immediately.** Do NOT make any more tool calls. Do NOT "check status." Do NOT "prepare the next phase." Your message send is the last action of your turn. The next turn will be triggered by a mailbox notification. If you continue working after SendMessage, you block the mailbox and cause a DEADLOCK.
+**CRITICAL: After sending message to any teammate (SendMessage), you MUST STOP and yield immediately.** Do NOT make any more tool calls. Do NOT "check status." Do NOT "prepare next phase." Your message send is last action of turn. Next turn triggered by mailbox notification. If you continue working after SendMessage, you block mailbox and cause DEADLOCK.
 
 ## Team Lifecycle Discipline
 
-**The pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at the end.**
+**Pipeline uses ONE team throughout. Create it once at Phase 3, recycle members between phases, delete at end.**
 
 ### Waiting Discipline (Applies to EVERY phase)
 
-**Whenever the lead spawns a teammate or sends a message to a teammate, the lead MUST yield immediately.** No exceptions.
+**Whenever lead spawns teammate or sends message to teammate, lead MUST yield immediately.** No exceptions.
 
-- **CRITICAL: Polling DEADLOCKS the mailbox.** `sleep`, `sleep && stat`, `Monitor("Wait 60s and check for file")` — any polling mechanism blocks incoming mailbox messages from teammates. The lead will never see the completion message because it's busy polling. **This is a deadlock, not a timeout.**
-- **CRITICAL: After any SendMessage to a teammate, your turn is OVER.** Do NOT make more tool calls. Do NOT "check on the way." Do NOT "prepare the next step." Just yield. The next turn will be triggered by a mailbox notification.
-- **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check output files, do NOT grep for completion strings. Just yield and wait for the system to deliver the teammate's completion message.
-- When a teammate goes idle (mailbox notification received), send ONE structured shutdown request:
+- **CRITICAL: Polling DEADLOCKS mailbox.** `sleep`, `sleep && stat`, `Monitor("Wait 60s and check for file")` — any polling mechanism blocks incoming mailbox messages from teammates. Lead will never see completion message because it's busy polling. **This is deadlock, not timeout.**
+- **CRITICAL: After any SendMessage to teammate, your turn is OVER.** Do NOT make more tool calls. Do NOT "check on way." Do NOT "prepare next step." Just yield. Next turn triggered by mailbox notification.
+- **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check output files, do NOT grep for completion strings. Just yield and wait for system to deliver teammate's completion message.
+- When teammate goes idle (mailbox notification received), send ONE structured shutdown request:
   ```
   SendMessage({ to: "<name>", summary: "shutdown", message: { type: "shutdown_request", request_id: "shutdown-1", approve: true } })
   ```
-  Then wait for the idle confirmation before proceeding.
+  Then wait for idle confirmation before proceeding.
 
 ### Phase Transition (Shutdown Old → Create Tasks → Spawn All New)
 Between every phase that uses Agent Teams:
-1. **Shutdown old teammates**: For each active teammate, send a structured shutdown request:
+1. **Shutdown old teammates**: For each active teammate, send structured shutdown request:
    ```
    SendMessage({
      to: "<teammate-name>",
@@ -61,53 +61,53 @@ Between every phase that uses Agent Teams:
      message: { type: "shutdown_request", request_id: "shutdown-1", approve: true }
    })
    ```
-   **Use the structured message format above — NOT a plain string.** **One request per teammate. Do NOT send multiple.**
-2. **After sending ALL shutdown requests, YIELD IMMEDIATELY.** Your turn is over. The next turn will be triggered by mailbox notifications from teammates confirming shutdown. **Do NOT proceed to step 3 in the same turn.**
-3. **Wait for all shutdowns** — teammates confirm via mailbox. The system takes a moment to process. **Do NOT proceed until all old teammates are confirmed gone (idle notification received).**
+   **Use structured message format above — NOT plain string.** **One request per teammate. Do NOT send multiple.**
+2. **After sending ALL shutdown requests, YIELD IMMEDIATELY.** Turn over. Next turn triggered by mailbox notifications from teammates confirming shutdown. **Do NOT proceed to step 3 in same turn.**
+3. **Wait for all shutdowns** — teammates confirm via mailbox. System takes moment to process. **Do NOT proceed until all old teammates confirmed gone (idle notification received).**
 4. **Create tasks**: Use `TaskCreate` to create ALL tasks for this phase with clear descriptions.
-5. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** The number of teammates to spawn depends on the phase (see phase-specific instructions).
-6. **After spawning ALL teammates, YIELD IMMEDIATELY.** Your turn is over.
+5. **Spawn ALL teammates at once** — call Agent multiple times in parallel (one per teammate needed), ALL with `team_name: "book-pipeline"`. **Do NOT spawn one at a time sequentially.** Number of teammates to spawn depends on phase (see phase-specific instructions).
+6. **After spawning ALL teammates, YIELD IMMEDIATELY.** Turn over.
 7. **Wait** — teammates auto-claim tasks via file locking, complete them, auto-claim next. They auto-message lead via mailbox when done.
-   - **CRITICAL: Polling blocks the mailbox.** If the lead uses `sleep`, `Monitor`, or any polling mechanism, incoming mailbox messages from teammates cannot be delivered — creating a DEADLOCK. The lead will never see the completion message because it's busy polling.
-   - **The lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let the system deliver teammate messages to your mailbox.
-8. **Shutdown when idle** — when all tasks are done and teammates go idle, send ONE structured shutdown request per teammate (see step 1 format). **After sending, YIELD IMMEDIATELY.** Wait for confirmations in the next turn.
+   - **CRITICAL: Polling blocks mailbox.** If lead uses `sleep`, `Monitor`, or any polling mechanism, incoming mailbox messages from teammates cannot be delivered — creating DEADLOCK. Lead will never see completion message because it's busy polling.
+   - **Lead's only action while waiting: DO NOTHING.** Do NOT poll, do NOT monitor, do NOT check files. Just yield and let system deliver teammate messages to your mailbox.
+8. **Shutdown when idle** — when all tasks done and teammates go idle, send ONE structured shutdown request per teammate (see step 1 format). **After sending, YIELD IMMEDIATELY.** Wait for confirmations in next turn.
 
 **Lead's only jobs: create tasks, spawn ALL new teammates in parallel, then yield and wait for mailbox. Never poll.**
 
-**IMPORTANT: The order is critical — shutdown old FIRST, then create tasks, then spawn ALL new teammates in one parallel batch. Never create a new team — always use team_name "book-pipeline".**
+**IMPORTANT: Order is critical — shutdown old FIRST, then create tasks, then spawn ALL new teammates in one parallel batch. Never create new team — always use team_name "book-pipeline".**
 
 ### Initial Team Creation (Phase 3 only)
 `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })` — create ONCE.
 
 ### Shutdown Pattern (used by every phase)
-Every phase ends with: **Wait for teammate idle notification → send ONE `shutdown_request` → wait for confirmation → proceed to next phase.** Refer to "Waiting Discipline" section above for the full rules.
+Every phase ends with: **Wait for teammate idle notification → send ONE `shutdown_request` → wait for confirmation → proceed to next phase.** Refer to "Waiting Discipline" section above for full rules.
 
 ### Final Cleanup (Phase 11 only)
-`TeamDelete({})` — delete ONCE at the very end. **No parameters needed** — the tool automatically targets the current team. If it fails with "active members" error, some teammates are still running; wait for their idle notifications, send shutdown_request to each, then retry `TeamDelete({})`.
+`TeamDelete({})` — delete ONCE at very end. **No parameters needed** — tool automatically targets current team. If it fails with "active members" error, some teammates still running; wait for their idle notifications, send shutdown_request to each, then retry `TeamDelete({})`.
 
 ### Prohibited Operations
-- **NEVER** create a second team — ONE team throughout the pipeline
+- **NEVER** create second team — ONE team throughout pipeline
 - **NEVER** manually edit or delete `~/.claude/teams/` or `~/.claude/tasks/` files
 - **NEVER** fall back to subagents (`Agent` without `team_name`)
-- **NEVER** use `sleep`, `sleep` loops, or `Monitor` to check teammate progress — teammates auto-message lead via mailbox on completion. The lead does NOT need to poll, wait on files, or monitor output. **Just wait for the mailbox message.**
-- **NEVER** poll for output files — if a teammate has work to do, they will message you. Just wait.
-- **NEVER** continue working after SendMessage to a teammate — SendMessage is ALWAYS the last action of your turn. Yield immediately.
-- **NEVER** rush shutdown — send ONE shutdown_request per teammate, then WAIT. The system takes time to process after approval. Do NOT send repeated shutdowns. Do NOT do the teammate's work yourself while waiting.
+- **NEVER** use `sleep`, `sleep` loops, or `Monitor` to check teammate progress — teammates auto-message lead via mailbox on completion. Lead does NOT need to poll, wait on files, or monitor output. **Just wait for mailbox message.**
+- **NEVER** poll for output files — if teammate has work to do, they will message you. Just wait.
+- **NEVER** continue working after SendMessage to teammate — SendMessage is ALWAYS last action of turn. Yield immediately.
+- **NEVER** rush shutdown — send ONE shutdown_request per teammate, then WAIT. System takes time to process after approval. Do NOT send repeated shutdowns. Do NOT do teammate's work yourself while waiting.
 
 ## Agent Teams Rules
 
-**This pipeline uses Agent Teams, NOT subagents.** Each parallel batch spawns independent teammates that share a task list and communicate directly.
+**This pipeline uses Agent Teams, NOT subagents.** Each parallel batch spawns independent teammates that share task list and communicate directly.
 
 ### Core Constraints
 
-1. **Team size MUST NOT exceed 6** — at any point, no more than 6 teammates are active simultaneously. This is a hard limit.
-2. **Auto-shutdown on completion** — teammates that finish their assigned tasks MUST shut down and exit immediately. Do not leave idle teammates running.
-3. **Reviewer pattern: fixed 4, serial processing** — review phases (6a/6b/6c/7) use exactly 4 teammates maximum regardless of chapter count. Each teammate processes multiple chapters serially via the shared task list: pick up next task → complete → pick up next → shut down when queue empty.
-4. **Queue-based onboarding via config file** — when a non-review phase requires more than 6 workers, do NOT split into batches manually. The pipeline (lead) is responsible for queue management:
+1. **Team size MUST NOT exceed 6** — at any point, no more than 6 teammates active simultaneously. This is hard limit.
+2. **Auto-shutdown on completion** — teammates that finish assigned tasks MUST shut down and exit immediately. Do not leave idle teammates running.
+3. **Reviewer pattern: fixed 4, serial processing** — review phases (6a/6b/6c/7) use exactly 4 teammates maximum regardless of chapter count. Each teammate processes multiple chapters serially via shared task list: pick up next task → complete → pick up next → shut down when queue empty.
+4. **Queue-based onboarding via config file** — when non-review phase requires more than 6 workers, do NOT split into batches manually. Pipeline (lead) responsible for queue management:
    - Write all pending teammate assignments to `.work/team-queue.md` with status (queued / onboarded / completed)
    - Spawn up to 6 teammates initially, mark them as "onboarded"
-   - Monitor active teammates: when one completes and shuts down, mark it "completed" in the queue, then spawn the next "queued" teammate and mark it "onboarded"
-   - Repeat until the queue is empty
+   - Monitor active teammates: when one completes and shuts down, mark it "completed" in queue, then spawn next "queued" teammate and mark it "onboarded"
+   - Repeat until queue empty
    - Queue file format:
      ```markdown
      # Team Queue
@@ -118,8 +118,8 @@ Every phase ends with: **Wait for teammate idle notification → send ONE `shutd
      | 7 | book-chapter-reviewer | Review ch07 | queued |
      ```
 5. **Single team throughout** — create team "book-pipeline" at Phase 3. Between phases: shutdown old teammates → spawn new teammates with same team_name. Delete team only at Phase 11.
-6. **Lead only coordinates** — the pipeline (lead) delegates work, monitors progress, and reports to the user. All reading, writing, reviewing, and proofreading is done by teammates.
-7. **NEVER fall back to subagents** — if a teammate encounters an error or is slow, do NOT replace it with a subagent. Fix the issue within the team model or report to the user.
+6. **Lead only coordinates** — pipeline (lead) delegates work, monitors progress, reports to user. All reading, writing, reviewing, proofreading done by teammates.
+7. **NEVER fall back to subagents** — if teammate encounters error or is slow, do NOT replace it with subagent. Fix issue within team model or report to user.
 
 ---
 
@@ -131,10 +131,10 @@ Extract from user input:
 - `--subtitle` → subtitle (optional)
 - `--audience` → target readers (optional, e.g. "Python developers", "Go backend engineers")
 - `--focus` → key focus areas (optional, comma-separated)
-- `--chapters` → suggested chapter count, default 16 (passed to Phase 2 topic selection as a hint)
+- `--chapters` → suggested chapter count, default 16 (passed to Phase 2 topic selection as hint)
 - `--book-dir` → book output directory, defaults to `<project-name>-book/`
 
-If the repo path is missing, use AskUserQuestion to prompt the user.
+If repo path missing, use AskUserQuestion to prompt user.
 
 After determining `BOOK_DIR`:
 ```bash
@@ -151,9 +151,9 @@ mkdir -p "$BOOK_DIR" "$BOOK_DIR/.work"
 
 ## Pipeline Orchestration
 
-Execute phases in order. After each phase completes, report to the user and confirm before proceeding.
+Execute phases in order. After each phase completes, report to user and confirm before proceeding.
 
-**IMPORTANT: The pipeline MUST continue to the next phase after user confirmation. Do NOT stop prematurely.**
+**IMPORTANT: Pipeline MUST continue to next phase after user confirmation. Do NOT stop prematurely.**
 
 ### Phase 1: Clone + Analyze
 
@@ -165,8 +165,8 @@ Output: codebase metrics (language distribution, file count, LOC, directory stru
 **IMPORTANT: Execute all steps SEQUENTIALLY. Do NOT run multiple Bash calls in parallel.**
 
 1. If URL:
-   - Derive repo directory name from the URL (e.g., `https://github.com/user/repo` → `repo/`)
-   - **Re-entrancy**: if the directory already exists, skip `git clone` and use the existing copy
+   - Derive repo directory name from URL (e.g., `https://github.com/user/repo` → `repo/`)
+   - **Re-entrancy**: if directory already exists, skip `git clone` and use existing copy
    - If not, run `git clone <url>` (wait for it to complete)
    If local path, verify it exists with `ls`
 2. **Detect language distribution** (polyglot):
@@ -174,7 +174,7 @@ Output: codebase metrics (language distribution, file count, LOC, directory stru
    find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.rb" -o -name "*.swift" -o -name "*.kt" -o -name "*.cs" \) | \
      sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10
    ```
-3. Gather metrics (replace `<ext>` with the detected primary language):
+3. Gather metrics (replace `<ext>` with detected primary language):
    ```bash
    find . -type f -name "*.<ext>" | wc -l
    find . -type f -name "*.<ext>" -exec cat {} + | wc -l
@@ -183,7 +183,7 @@ Output: codebase metrics (language distribution, file count, LOC, directory stru
    du -sh .
    ```
 4. Read README.md and entry-point files to understand architecture
-5. Present analysis results to the user; confirm before moving to topic selection
+5. Present analysis results to user; confirm before moving to topic selection
 
 ### Phase 2: Topic Selection
 
@@ -192,20 +192,20 @@ Input: codebase analysis results, user intent
 Output: topic report (TOPIC.md)
 ```
 
-**This is a LEAD-ONLY phase. Do NOT create a team. Do NOT spawn any teammates. You write TOPIC.md yourself.**
+**This is LEAD-ONLY phase. Do NOT create team. Do NOT spawn any teammates. You write TOPIC.md yourself.**
 
-**Re-entrancy**: If `TOPIC.md` already exists from a previous run, read it first and present it to the user for confirmation instead of regenerating. Only regenerate if the user explicitly requests changes.
+**Re-entrancy**: If `TOPIC.md` already exists from previous run, read it first and present it to user for confirmation instead of regenerating. Only regenerate if user explicitly requests changes.
 
-1. **Early exit check**: if the codebase is very small (< 1K LOC, single file, or trivial project), recommend to the user that this project may not warrant a full technical book. Offer to continue anyway if the user confirms.
+1. **Early exit check**: if codebase very small (< 1K LOC, single file, or trivial project), recommend to user that this project may not warrant full technical book. Offer to continue anyway if user confirms.
 2. Based on code analysis, generate topic report `TOPIC.md` containing:
-   - **Project Positioning** — what the project is and what problem it solves
-   - **Technical Highlights** — the 3-5 most noteworthy technical decisions or architectural designs
+   - **Project Positioning** — what project is and what problem it solves
+   - **Technical Highlights** — 3-5 most noteworthy technical decisions or architectural designs
    - **Target Audience** — who will read this book and what prerequisites they need
    - **Writing Angle** — which lens to use (architecture analysis vs. usage guide vs. source-code walkthrough)
    - **Title Suggestions** — 3-5 candidate titles + subtitles
-   - **Recommended Chapter Count** — 12-18 chapters (based on codebase complexity), respecting the `--chapters` hint if provided
+   - **Recommended Chapter Count** — 12-18 chapters (based on codebase complexity), respecting `--chapters` hint if provided
    - **What Not to Cover** — topics unsuitable for deep analysis
-3. Present the topic report to the user
+3. Present topic report to user
 4. After user confirmation or edits, proceed to outline
 
 ### Phase 3: Outline
@@ -219,7 +219,7 @@ Output: BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 2. Create task: "Analyze codebase, generate BOOK_PLAN.md (chapter outline with Theme field per chapter), STYLE_GUIDE.md (writing guide), and EDITORIAL_PLAN.md (pipeline plan)."
 3. Spawn 1 **planner** teammate with `book-outline` mode, passing codebase path, TOPIC.md, `BOOK_DIR`, and `--chapters` hint.
 4. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
-5. Present outline summary to the user; confirm before moving to coordination.
+5. Present outline summary to user; confirm before moving to coordination.
 
 ### Phase 4: Pre-Writing Coordination (Critical — Prevents Style Fragmentation)
 
@@ -258,11 +258,11 @@ Output: chapter files `.work/chapters/chXX-*.md`
 1. Create `.work/chapters/` directory for draft chapters
 2. **Batch 1 (Foundation chapters)**:
    - Create task for foundation chapters with details from `BOOK_PLAN.md` (titles, descriptions, key files, chapter theme/lens), `DEPENDENCIES.md` (boundaries), `STYLE_GUIDE.md` (conventions), `CODE_INDEX.md` (code summaries)
-   - Task description must include: "These are foundation chapters — focus on narrative clarity, project motivation, architectural overview, and why this codebase matters. Lower code density, higher readability. Set the tone for the entire book."
-   - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set the book's tone — exemplary structure compliance required. Pick up the task from the shared task list. When done, shut down."
+   - Task description must include: "These are foundation chapters — focus on narrative clarity, project motivation, architectural overview, and why this codebase matters. Lower code density, higher readability. Set tone for entire book."
+   - Spawn 1 **book-writer** teammate with prompt: "Write foundation chapters (first 2-3). These set book's tone — exemplary structure compliance required. Pick up task from shared task list. When done, shut down."
    - Follow Shutdown Pattern.
-3. **Checkpoint**: The lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn a reviewer for this.** This is a quick visual check by the lead — confirm chapter structure, Mermaid usage, decision box format, terminology, and writing tone.
-   - **After reviewing, present findings to the user and ask for confirmation before proceeding to Batch 2.** If user approves, proceed. If issues found, list them and ask whether to fix before Batch 2 or proceed anyway.
+3. **Checkpoint**: Lead (YOU) manually reviews Batch 1 output for style/depth/tone alignment with STYLE_GUIDE.md. **Do NOT spawn reviewer for this.** This is quick visual check by lead — confirm chapter structure, Mermaid usage, decision box format, terminology, writing tone.
+   - **After reviewing, present findings to user and ask for confirmation before proceeding to Batch 2.** If user approves, proceed. If issues found, list them and ask whether to fix before Batch 2 or proceed anyway.
 4. **Batch 2 (All remaining chapters)**:
    - Create tasks — one per remaining chapter. Each task must include:
      - Chapter title, description, key files from `BOOK_PLAN.md`
@@ -273,10 +273,10 @@ Output: chapter files `.work/chapters/chXX-*.md`
        - Integration/deployment chapters: production concerns, operational realities, trade-offs
      - `DEPENDENCIES.md` boundaries, `STYLE_GUIDE.md` conventions, `CODE_INDEX.md` summaries
      - Path to Batch 1 output as style reference
-   - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions, adapting tone and code density to the chapter's theme/lens as specified in the task. Use Batch 1 output as style reference. When no tasks remain, shut down."
+   - **Spawn 3 book-writer teammates IN PARALLEL** (one parallel Agent call per teammate, all with same team_name). Each prompt: "Pick up available writing tasks. Write chapters according to STYLE_GUIDE.md conventions, adapting tone and code density to chapter's theme/lens as specified in task. Use Batch 1 output as style reference. When no tasks remain, shut down."
    - Each writer auto-claims, writes, auto-claims next — repeat until done
    - Follow Shutdown Pattern.
-5. Collect results on completion; show progress to the user
+5. Collect results on completion; show progress to user
 
 ### Phase 6: Three Reviews
 
@@ -287,9 +287,9 @@ Input: all chapter files `.work/chapters/ch*.md` + STYLE_GUIDE.md
 Output: `.work/review-chXX.md` (one per chapter)
 ```
 
-1. Create tasks in the shared task list — one task per chapter, with details: "Review chapter chXX for structural compliance per STYLE_GUIDE.md. Write report to `.work/review-chXX.md`."
-2. Spawn 4 **book-chapter-reviewer** teammates (max 4 regardless of chapter count) with prompt: "Pick up available review tasks from the shared task list. Review each chapter, write report to `.work/review-chXX.md`. When no tasks remain, shut down."
-3. Each reviewer auto-claims, reviews, writes report, then auto-claims the next one — repeat until all tasks are done
+1. Create tasks in shared task list — one task per chapter, with details: "Review chapter chXX for structural compliance per STYLE_GUIDE.md. Write report to `.work/review-chXX.md`."
+2. Spawn 4 **book-chapter-reviewer** teammates (max 4 regardless of chapter count) with prompt: "Pick up available review tasks from shared task list. Review each chapter, write report to `.work/review-chXX.md`. When no tasks remain, shut down."
+3. Each reviewer auto-claims, reviews, writes report, then auto-claims next one — repeat until all tasks done
 4. Follow Shutdown Pattern.
 
 #### 6b. Technical Review (Fact-Checking — Critical!)
@@ -299,21 +299,21 @@ Input: all chapter files `.work/chapters/ch*.md` + source repo + CODE_INDEX.md
 Output: `.work/tech-review-chXX.md` (one per chapter)
 ```
 
-**This is not a format check — it is a fact check. Verify whether the code logic described in each chapter actually matches the source code.**
+**This is not format check — it is fact check. Verify whether code logic described in each chapter actually matches source code.**
 
-1. Create tasks in the shared task list — one task per chapter: "Fact-check chapter chXX against source code. Verify code citations, architecture descriptions, data accuracy. Write report to `.work/tech-review-chXX.md`."
+1. Create tasks in shared task list — one task per chapter: "Fact-check chapter chXX against source code. Verify code citations, architecture descriptions, data accuracy. Write report to `.work/tech-review-chXX.md`."
 2. Spawn 4 **book-technical-reviewer** teammates (max 4 regardless of chapter count) with prompt: "Pick up available technical review tasks. Verify claims against source code, run tests if available. Write report to `.work/tech-review-chXX.md`. When no tasks remain, shut down."
-3. Each reviewer auto-claims, verifies, writes report, then auto-claims the next one — repeat until all tasks are done
+3. Each reviewer auto-claims, verifies, writes report, then auto-claims next one — repeat until all tasks done
 4. Follow Shutdown Pattern.
 5. Each reviewer checks:
-   - **Code Logic** — does the claimed behavior match the actual code
-   - **Architecture Description** — does the described architecture match the actual code structure
-   - **Code Reference Context** — does the code at `file:line` actually implement what the chapter claims
+   - **Code Logic** — does claimed behavior match actual code
+   - **Architecture Description** — does described architecture match actual code structure
+   - **Code Reference Context** — does code at `file:line` actually implement what chapter claims
    - **Data Accuracy** — are performance figures and numbers backed by evidence
-   - **Design Decision Authenticity** — do the described "alternatives" and "trade-offs" actually exist
+   - **Design Decision Authenticity** — do described "alternatives" and "trade-offs" actually exist
 6. **Automated test verification** (if tests exist):
    - Detect test framework from `CODE_INDEX.md` test inventory
-   - Run relevant tests to verify behavioral claims using the appropriate command for the detected framework:
+   - Run relevant tests to verify behavioral claims using appropriate command for detected framework:
      | Framework | Command |
      |-----------|---------|
      | pytest | `pytest -v tests/ --tb=short 2>&1 \| head -50` |
@@ -325,8 +325,8 @@ Output: `.work/tech-review-chXX.md` (one per chapter)
      | JUnit/Maven | `mvn test -q 2>&1 \| head -50` |
      | Gradle | `./gradlew test 2>&1 \| head -50` |
      | Other | Fall back to manual source verification |
-   - If a chapter claims "function X handles Y case correctly", verify a test exists that covers it
-   - If the codebase has no tests, fall back to manual source verification
+   - If chapter claims "function X handles Y case correctly", verify test exists that covers it
+   - If codebase has no tests, fall back to manual source verification
 
 #### 6c. Cross-Chapter Review (Consistency)
 
@@ -338,15 +338,15 @@ Output: `.work/review-consistency.md`
 **To avoid context window explosion (18 chapters + all review reports = 100K+ tokens), split consistency review by Book Part:**
 
 1. Read `BOOK_PLAN.md` to identify Parts (typically 4-5 Parts)
-2. Create tasks in the shared task list — one task per Part: "Review consistency of all chapters within Part N. Check terminology, content deduplication, data consistency, design decision contradictions, cross-reference accuracy. Write report to `.work/review-consistency-partN.md`."
+2. Create tasks in shared task list — one task per Part: "Review consistency of all chapters within Part N. Check terminology, content deduplication, data consistency, design decision contradictions, cross-reference accuracy. Write report to `.work/review-consistency-partN.md`."
 3. Spawn up to 4 **book-consistency-reviewer** teammates (if fewer Parts than 4, spawn one per Part). **Spawn ALL in parallel.**
-4. Each reviewer auto-claims a Part, writes report, then auto-claims the next Part if available — repeat until all Parts are done
+4. Each reviewer auto-claims Part, writes report, then auto-claims next Part if available — repeat until all Parts done
 5. Follow Shutdown Pattern.
-6. **Merge strategy**: The pipeline lead consolidates all `.work/review-consistency-partN.md` files into `.work/review-consistency.md`:
-   - If the same issue appears in multiple Parts → list once with "affects all Parts"
+6. **Merge strategy**: Pipeline lead consolidates all `.work/review-consistency-partN.md` files into `.work/review-consistency.md`:
+   - If same issue appears in multiple Parts → list once with "affects all Parts"
    - If Part-specific → list under that Part section
    - If contradictions between Parts → flag as P0
-   - Include a summary table: total issues by severity
+   - Include summary table: total issues by severity
 
 #### 6d. Final Review (Overall Quality — Done by Pipeline Agent)
 
@@ -355,11 +355,11 @@ Input: all review reports (`.work/`) + all tech-review reports (`.work/`) + all 
 Output: final review verdict written to `.work/final-review-verdict.md`
 ```
 
-The pipeline agent synthesizes all review results and makes the go/no-go decision:
+Pipeline agent synthesizes all review results and makes go/no-go decision:
 
 1. Collect all initial review verdicts (`review-chXX.md`)
 2. Collect all technical review verdicts (`tech-review-chXX.md`)
-3. Read the cross-chapter consistency report (`review-consistency.md`)
+3. Read cross-chapter consistency report (`review-consistency.md`)
 4. Tally PASS/FAIL counts and identify critical issues
 5. Write verdict to `.work/final-review-verdict.md`
 6. Judge:
@@ -376,11 +376,11 @@ Output: revised `.work/chapters/ch*.md` files
 ```
 
 1. Read `BOOK_PLAN.md` to determine which chapters have FAIL verdicts
-2. Create tasks in the shared task list — one task per FAIL chapter with details: chapter title/description/key files from `BOOK_PLAN.md`, FAIL items from `review-chXX.md` (structural issues), FAIL items from `tech-review-chXX.md` (factual errors), STYLE_GUIDE.md for formatting. Note: fix factual errors first.
+2. Create tasks in shared task list — one task per FAIL chapter with details: chapter title/description/key files from `BOOK_PLAN.md`, FAIL items from `review-chXX.md` (structural issues), FAIL items from `tech-review-chXX.md` (factual errors), STYLE_GUIDE.md for formatting. Note: fix factual errors first.
 3. Spawn up to 4 **book-writer** teammates with prompt: "Pick up available rework tasks. Fix assigned chapters against actual source code. Write revised chapter to `.work/chapters/chXX-*.md`. When no tasks remain, shut down."
-4. Each writer auto-claims, fixes, writes, then auto-claims the next FAIL chapter — repeat until done
+4. Each writer auto-claims, fixes, writes, then auto-claims next FAIL chapter — repeat until done
 5. Follow Shutdown Pattern, then **re-run Phase 6a + Phase 6b** with new tasks and teammates.
-6. Maximum 2 rework rounds; beyond that, report to the user for a decision
+6. Maximum 2 rework rounds; beyond that, report to user for decision
 
 ### Phase 8: Verification
 
@@ -393,14 +393,14 @@ Output: `.work/verification-status.md`
    ```bash
    which mmdc >/dev/null 2>&1 || echo "ERROR: mmdc not installed. Run: npm install -g @mermaid-js/mermaid-cli"
    ```
-   - **If mmdc is NOT available**: Report error to user. Pipeline cannot proceed without mmdc — Mermaid validation is mandatory. Wait for user to install or confirm override.
+   - **If mmdc NOT available**: Report error to user. Pipeline cannot proceed without mmdc — Mermaid validation mandatory. Wait for user to install or confirm override.
    - **If mmdc IS available**: Proceed to spawn verifier.
 
 2. Create task: "Run automated structure checks on all chapters. Validate Mermaid syntax using mmdc (authoritative). Write `.work/verification-status.md`."
 
 3. Spawn 1 **book-verifier** teammate. Follow Shutdown Pattern.
 
-4. Display verification results table. If any FAILs, list the issues, get user confirmation, then proceed to proofreading.
+4. Display verification results table. If any FAILs, list issues, get user confirmation, then proceed to proofreading.
 
 ### Phase 9: Three Proofreads + Preface (Parallel)
 
@@ -417,7 +417,7 @@ Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md`
    - **proofreader**: prompt = "Execute `book-readability` mode only: read-through (transitions, narrative coherence, pacing, tone). Write `.work/proofread-3.md`."
    - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md. 1-2 pages, no Mermaid, no code citations."
 2. All 4 work in parallel. Follow Shutdown Pattern for each.
-3. Report to the user when all are complete
+3. Report to user when all complete
 
 ### Phase 9.5: Preface Review
 
@@ -426,16 +426,16 @@ Input: preface.md + TOPIC.md + BOOK_PLAN.md + STYLE_GUIDE.md
 Output: `.work/preface-review.md`
 ```
 
-The preface is the first thing readers see — review it before incorporation:
+Preface is first thing readers see — review it before incorporation:
 
 1. Create task: "Review `preface.md` against TOPIC.md, BOOK_PLAN.md, and STYLE_GUIDE.md. Check: accuracy (matches TOPIC.md?), tone (analytical, 'we', not tutorial?), scope (intro without technical detail?), structure (motivation, audience, usage?), length (1-2 pages, no Mermaid, no code citations), factual claims. Write `.work/preface-review.md`."
 2. Spawn 1 **book-chapter-reviewer** teammate. Follow Shutdown Pattern.
 3. **Verdict handling**:
    - **PASS**: Proceed to Phase 10
    - **FAIL**:
-     1. List the issues to the user.
+     1. List issues to user.
      2. **Spawn 1 book-preface-writer teammate** with task: "Rewrite `preface.md` fixing: [list issues from preface-review report]." Follow Shutdown Pattern.
-     3. Re-run Phase 9.5 (preface review) on the rewritten preface.
+     3. Re-run Phase 9.5 (preface review) on rewritten preface.
      4. **Maximum 1 rewrite** — if Phase 9.5 still FAILs, present issues to user for manual intervention.
 
 ### Phase 10: Synthesis (Chunked Processing)
@@ -452,7 +452,7 @@ Output: fixed chapters + fixed preface + 4 appendices + book-final.md
 3. **Pass 3: P2 Fixes** — create task: "Fix P2 issues: terminology unification, difficulty buffering, transitions." Spawn 1 **book-editor-in-chief** with `p2-fixes` mode. Follow Shutdown Pattern.
 4. **Pass 4: Appendix Writing** — create task: "Write 4 appendix files: appendix-A (file index), appendix-B (tool reference), appendix-C (design decisions), appendix-D (glossary)." Spawn 1 **book-editor-in-chief** with `write-appendices` mode. Follow Shutdown Pattern.
 5. **Pass 5: Final Compilation** — create task: "Read all fixed chapters + 4 appendices + preface, compile `book-final.md`." Spawn 1 **book-editor-in-chief** with `compile-final` mode. Follow Shutdown Pattern.
-6. Present synthesis results to the user (fix counts, final word count)
+6. Present synthesis results to user (fix counts, final word count)
 
 ### Phase 10.5: Final Review (Quality Gate — Before Delivery)
 
@@ -461,7 +461,7 @@ Input: book-final.md
 Output: `.work/final-review.md` (final verdict: PASS/FAIL)
 ```
 
-**The last human-readable quality gate. Catches ASCII art residue, missing sections, broken cross-references, and Mermaid errors in the compiled manuscript.**
+**Last human-readable quality gate. Catches ASCII art residue, missing sections, broken cross-references, Mermaid errors in compiled manuscript.**
 
 1. Create task: "Review `book-final.md`: ASCII art residue (grep for box-drawing chars), structural completeness (metaphor, Mermaid, reflection questions, principles per chapter), decision box format (blockquote only), Mermaid syntax validation, cross-reference integrity, overall quality (word count anomalies, TODOs). Write `.work/final-review.md` with PASS/FAIL verdict."
 2. Spawn 1 **book-final-reviewer** teammate. Follow Shutdown Pattern.
@@ -469,11 +469,11 @@ Output: `.work/final-review.md` (final verdict: PASS/FAIL)
    - **PASS**: Proceed to Phase 10.6 (External Review)
    - **FAIL**:
      1. List all blockers to user with severity ratings (P0/P1/P2).
-     2. **Fixable issues** → route back to the appropriate Phase 10 pass:
+     2. **Fixable issues** → route back to appropriate Phase 10 pass:
         - ASCII art, decision box format, missing structure → re-run Phase 10 Pass 1 (P0 fixes)
         - Content overlap, cross-refs, data consistency → re-run Phase 10 Pass 2 (P1 fixes)
         - Terminology, transitions → re-run Phase 10 Pass 3 (P2 fixes)
-     3. **After the fix pass completes, you MUST also re-run the remaining Phase 10 passes in sequence**:
+     3. **After fix pass completes, you MUST also re-run remaining Phase 10 passes in sequence**:
         - If you ran Pass 1: also run Pass 2 → Pass 3 → Pass 4 → Pass 5 (compile-final)
         - If you ran Pass 2: also run Pass 3 → Pass 4 → Pass 5 (compile-final)
         - If you ran Pass 3: also run Pass 4 → Pass 5 (compile-final)
@@ -487,17 +487,17 @@ Input: book-final.md + BOOK_PLAN.md
 Output: `.work/external-review.md` (compilation integrity verdict: PASS/FAIL)
 ```
 
-**After Phase 10.5 quality gate passes, this phase checks the compiled book as a complete publication — not per-chapter quality, but whole-book integrity.**
+**After Phase 10.5 quality gate passes, this phase checks compiled book as complete publication — not per-chapter quality, but whole-book integrity.**
 
-1. Create task: "Review `book-final.md` as a complete compiled manuscript against `BOOK_PLAN.md`. Check:
-   - **Chapter completeness**: All chapters from BOOK_PLAN.md are present, none missing
+1. Create task: "Review `book-final.md` as complete compiled manuscript against `BOOK_PLAN.md`. Check:
+   - **Chapter completeness**: All chapters from BOOK_PLAN.md present, none missing
    - **Chapter order**: Chapters appear in correct sequence (ch01 → ch02 → ... → chN)
-   - **No duplicates**: No chapter appears twice in the manuscript
+   - **No duplicates**: No chapter appears twice in manuscript
    - **No empty sections**: Every chapter has content (not just headings or placeholders)
-   - **Format consistency**: Heading levels are uniform across chapters, numbering is sequential
-   - **Layout consistency**: Spacing, separator lines (---), and section breaks are uniform
-   - **Preface placement**: Preface appears before the table of contents
-   - **Appendix placement**: All 4 appendices (A-D) appear after the main content
+   - **Format consistency**: Heading levels uniform across chapters, numbering sequential
+   - **Layout consistency**: Spacing, separator lines (---), section breaks uniform
+   - **Preface placement**: Preface appears before table of contents
+   - **Appendix placement**: All 4 appendices (A-D) appear after main content
    - **Table of contents accuracy**: TOC matches actual chapter headings
    Write `.work/external-review.md` with PASS/FAIL verdict."
 2. Spawn 1 **book-chapter-reviewer** teammate. Follow Shutdown Pattern.
@@ -505,26 +505,26 @@ Output: `.work/external-review.md` (compilation integrity verdict: PASS/FAIL)
    - **PASS**: Proceed to Phase 11 (Delivery)
    - **FAIL**:
      1. List all compilation issues to user.
-     2. **Route back to Phase 10 Pass 5 (compile-final)** to regenerate `book-final.md` with corrections. The lead provides the external review report as input so the editor-in-chief knows what to fix.
-     3. **After re-compile, re-run the full review chain**: Phase 10.5 (final review) → Phase 10.6 (external review). Both must PASS before proceeding to delivery.
+     2. **Route back to Phase 10 Pass 5 (compile-final)** to regenerate `book-final.md` with corrections. Lead provides external review report as input so editor-in-chief knows what to fix.
+     3. **After re-compile, re-run full review chain**: Phase 10.5 (final review) → Phase 10.6 (external review). Both must PASS before proceeding to delivery.
      4. **Maximum 1 loop** — if Phase 10.6 still FAILs after one re-compile cycle, present issues to user for manual intervention.
 
 ### Phase 11: Delivery
 
 1. Show final draft statistics (`wc -l`, `wc -c`, chapter count)
-2. Deliver final draft files to the user:
+2. Deliver final draft files to user:
    - List all deliverable file paths:
      - `book-final.md` (in `BOOK_DIR/`)
      - `preface.md` (in `BOOK_DIR/`)
      - `appendix-A.md` through `appendix-D.md` (in `BOOK_DIR/`)
-   - Display a summary of what was produced and where to find each file
+   - Display summary of what was produced and where to find each file
 3. Display pipeline execution summary
 
 ---
 
 ## Failure Handling Principles
 
-- **Topic Selection** → project unsuitable for a book (too small, too simple, insufficient docs); explain to the user
+- **Topic Selection** → project unsuitable for book (too small, too simple, insufficient docs); explain to user
 - **Outline** → analysis insufficient; request more information
 - **Review FAIL** → rework, max 2 rounds
 - **Verification FAIL** → list specific issues; continue after user confirmation
@@ -542,4 +542,4 @@ After each phase completes, output:
   - [Duration / File Count / Other Metrics]
 ```
 
-When the entire pipeline finishes, output a full summary.
+When entire pipeline finishes, output full summary.

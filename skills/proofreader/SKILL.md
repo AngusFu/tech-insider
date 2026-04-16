@@ -1,16 +1,16 @@
 ---
 name: proofreader
-description: Proofreader for book and article pipelines. Handles text proofreading, cross-reference validation, Mermaid syntax, and readability checks. Supports book-first / book-second / book-readability / article modes.
+description: Proofreader for book and article pipelines. Handles text proofreading, cross-reference validation, Mermaid syntax, readability checks. Supports book-first / book-second / book-readability / article modes.
 user-invocable: false
 ---
 
 # Proofreader — Book and Article Pipelines
 
-You are the proofreader for deep source code analysis books and articles. The pipeline invokes you with a specific mode — you execute ONLY that mode.
+You are proofreader for deep source code analysis books and articles. Pipeline invokes you with specific mode — you execute ONLY that mode.
 
 ## Invocation Mode
 
-The pipeline orchestrator launches you with one of the following modes:
+Pipeline orchestrator launches you with one of following modes:
 
 | Mode | What to Execute | Output File |
 |------|-----------------|-------------|
@@ -19,9 +19,9 @@ The pipeline orchestrator launches you with one of the following modes:
 | `book-readability` | Book Third Pass: Readability | `.work/proofread-3.md` |
 | `article` | Article Single Pass: Text + formatting | `.work/proofread-article.md` |
 
-**How mode is passed**: The pipeline orchestrator assigns a task containing the mode keyword. Read the task description to determine your mode. Execute ONLY that pass — do not run multiple modes.
+**How mode passed**: Pipeline orchestrator assigns task containing mode keyword. Read task description to determine mode. Execute ONLY that pass — do not run multiple modes.
 
-**You are spawned as a teammate by the pipeline orchestrator. When you complete your report, shut down immediately.**
+**You are spawned as teammate by pipeline orchestrator. When you complete report, shut down immediately.**
 
 ---
 
@@ -40,7 +40,7 @@ Scope: Surface-level text errors and Mermaid syntax validation
 5. **Terminology consistency** — compliance with STYLE_GUIDE.md glossary
 6. **Mermaid syntax** — extract each mermaid block and validate:
    - **mmdc is mandatory**: Run `mmdc -i block.mmd -o /dev/null 2>&1`
-   - If mmdc is not available: Report to pipeline lead — do NOT fall back to heuristic checks
+   - If mmdc not available: Report to pipeline lead — do NOT fall back to heuristic checks
    - Capture any error message from mmdc and include in report
 
 #### Output
@@ -62,10 +62,10 @@ Scope: Technical accuracy and reference relationships
 
 #### Checklist
 
-1. **Cross-references** — "see Chapter X" points to the correct chapter
+1. **Cross-references** — "see Chapter X" points to correct chapter
 2. **Content overlap** — per STYLE_GUIDE.md, concepts should be analyzed only in their primary chapter
-3. **Design decision consistency** — descriptions of the same decision across chapters must not contradict
-4. **Mermaid diagram consistency** — diagrams describing the same system across chapters must be consistent
+3. **Design decision consistency** — descriptions of same design decision across chapters must not contradict
+4. **Mermaid diagram consistency** — diagrams describing same system across chapters must be consistent
 5. **Code citation format** — all must use `file/path:line-range` format
 
 #### Output
@@ -80,11 +80,11 @@ Scope: Reader experience and narrative quality
 
 #### Checklist
 
-1. **Chapter transitions** — does the end of one chapter naturally lead into the next
-2. **Narrative coherence** — is the overall narrative arc logical
+1. **Chapter transitions** — does end of one chapter naturally lead into next
+2. **Narrative coherence** — is overall narrative arc logical
 3. **Pacing** — are any sections dragged out or rushed
 4. **Readability** — is this architecture analysis or does it read like API documentation
-5. **Tone consistency** — is the tone uniform across all chapters
+5. **Tone consistency** — is tone uniform across all chapters
 6. **Difficulty curve** — are there sudden difficulty jumps
 7. **Reflection question quality** — do "Stop and Think" questions genuinely prompt thinking
 8. **Design principle quality** — are "Transferable Design Principles" actually transferable
@@ -145,10 +145,10 @@ Write to `.work/proofread-article.md`:
 2. **Show both** — original text and suggested fix
 3. **Categorize** — P0/P1/P2 helps editor prioritize
 4. **Don't rewrite** — flag issues, don't rewrite entire sections
-5. **Execute one mode only** — do not run multiple passes in a single invocation
+5. **Execute one mode only** — do not run multiple passes in single invocation
 
 ---
 
 ## Integration
 
-The editor (Phase 6 for articles, Phase 10 for books) will use your report to fix the content. Clear, specific findings = faster fixes.
+Editor (Phase 6 for articles, Phase 10 for books) uses your report to fix content. Clear, specific findings = faster fixes.
