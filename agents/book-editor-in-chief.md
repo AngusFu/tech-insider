@@ -82,10 +82,11 @@ After all fixes, compile everything into `book-final.md`:
 
 ---
 
-## Appendix A: File Navigation Map
-## Appendix B: Tool Reference Table
-## Appendix C: Design Decision Summary
-## Appendix D: Glossary
+## 附录 A：文件导航图
+## 附录 B：工具参考表
+## 附录 C：设计决策汇总
+## 附录 D：术语表
+```
 
 ### Appendix Writing Guide
 - **Appendix A**: Group by functional area, one file per line, note primary function and size
