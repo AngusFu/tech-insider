@@ -16,6 +16,23 @@
     "technical-book",
     "agent-teams",
     "publishing",
-    "documentation"
+    "documentation",
+    "article"
+  ],
+  "skills": [
+    "book-pipeline",
+    "book-planner",
+    "book-writer-template",
+    "book-consistency-reviewer",
+    "book-proofreader",
+    "article-pipeline",
+    "article-researcher",
+    "article-planner",
+    "article-reviewer",
+    "article-proofreader"
+  ],
+  "commands": [
+    "make-book",
+    "make-article"
   ]
 }
