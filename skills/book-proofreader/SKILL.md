@@ -36,9 +36,9 @@ Scope: Surface-level text errors
 4. **Markdown syntax** — broken links, unclosed code blocks, discontinuous heading levels
 5. **Terminology consistency** — compliance with STYLE_GUIDE.md glossary
 6. **Mermaid syntax** — extract each mermaid block and validate:
-   - Try `mmdc -i block.mmd -o /dev/null` if available (authoritative)
-   - Otherwise check for common errors: unbalanced brackets/parentheses, missing arrows (`-->`), invalid directive, unclosed quotes
-   - Flag each invalid block with the error message
+   - **mmdc is mandatory**: Run `mmdc -i block.mmd -o /dev/null 2>&1`
+   - If mmdc is not available: Report to pipeline lead — do NOT fall back to heuristic checks
+   - Capture any error message from mmdc and include in report
 
 ### Output
 

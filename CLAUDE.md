@@ -139,7 +139,9 @@ The pipeline orchestrator (lead) only coordinates, delegates, and reports. All w
 Foundation chapters go first (set tone). After style checkpoint, remaining chapters split among up to 3 generic writers in parallel with Batch 1 output as reference.
 
 ### Mermaid Is the Only Diagram Choice
-No ASCII art allowed. All architecture diagrams must be Mermaid. Verified by `book-verifier` using `mmdc -i file.mmd -o /dev/null`.
+No ASCII art allowed. All architecture diagrams must be Mermaid.
+**Validation**: `mmdc -i file.mmd -o /dev/null` is mandatory in Phase 8 (book-verifier), Phase 9 (book-proofreader first pass), and Phase 10.5 (book-final-reviewer).
+**No fallback**: If mmdc is not available, the pipeline must report error and wait for installation — heuristic checks are not allowed.
 
 ### CODE_INDEX.md Cuts Token Cost 50%+
 Writers and reviewers query the pre-computed index instead of reading raw source. Drill into source only for specific citations.

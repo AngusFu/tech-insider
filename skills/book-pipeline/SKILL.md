@@ -389,13 +389,18 @@ Input: all chapter files `.work/chapters/ch*.md`
 Output: `.work/verification-status.md`
 ```
 
-1. Before spawning, check if `mmdc` is available:
+1. **Check mmdc availability** (fail if not installed):
    ```bash
-   which mmdc >/dev/null 2>&1 && echo "mmdc available" || echo "mmdc not available — falling back to heuristic checks"
+   which mmdc >/dev/null 2>&1 || echo "ERROR: mmdc not installed. Run: npm install -g @mermaid-js/mermaid-cli"
    ```
-2. Create task: "Run automated structure checks on all chapters. Validate Mermaid syntax (use mmdc if available, else heuristic checks). Write `.work/verification-status.md`."
+   - **If mmdc is NOT available**: Report error to user. Pipeline cannot proceed without mmdc — Mermaid validation is mandatory. Wait for user to install or confirm override.
+   - **If mmdc IS available**: Proceed to spawn verifier.
+
+2. Create task: "Run automated structure checks on all chapters. Validate Mermaid syntax using mmdc (authoritative). Write `.work/verification-status.md`."
+
 3. Spawn 1 **book-verifier** teammate. Follow Shutdown Pattern.
-4. Display verification results table. If any FAILs, list the issues, get user confirmation, then proceed to proofreading
+
+4. Display verification results table. If any FAILs, list the issues, get user confirmation, then proceed to proofreading.
 
 ### Phase 9: Three Proofreads + Preface (Parallel)
 

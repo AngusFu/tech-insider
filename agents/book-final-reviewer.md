@@ -32,10 +32,12 @@ Run: `grep -P '[│├└─┌┐┬┴┼]+' book-final.md`
 - Search for `> \*\*Decision\*\*` or `> \*\*决策\*\*` pattern — each chapter should have ≥1 design decision box
 - Verify no `<div>` HTML tags or code-block-formatted decision boxes
 
-### 4. Mermaid Syntax Validation (P1)
-- Extract all ```mermaid blocks from `book-final.md`
-- If `mmdc` available: validate with `mmdc -i block.mmd -o /dev/null`
-- If unavailable: run heuristic checks (unbalanced brackets, missing arrows, invalid directives)
+### 4. Mermaid Syntax Validation (P0)
+- Extract all \`\`\`mermaid blocks from `book-final.md`
+- **mmdc is mandatory**: Run `mmdc -i block.mmd -o /dev/null 2>&1` for each block
+- If mmdc is not available: Report to pipeline lead immediately — do NOT fall back to heuristic checks
+- Capture any error message and include in report
+- Any mmdc failure is a P0 blocker
 
 ### 5. Cross-Reference Integrity (P1)
 - Search for "详见第X章" / "see Chapter X" patterns — verify referenced chapters actually exist in the book

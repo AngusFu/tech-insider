@@ -10,6 +10,17 @@ You are spawned as a teammate by the pipeline orchestrator (Phase 8). Your job i
 
 **When you complete your report, shut down immediately.**
 
+### Critical: mmdc Installation Check
+
+**Before running any checks**, verify `mmdc` is available:
+
+```bash
+which mmdc >/dev/null 2>&1
+```
+
+- **If mmdc is NOT available**: Report to the pipeline lead immediately. Do NOT proceed with heuristic checks. The lead must install it (`npm install -g @mermaid-js/mermaid-cli`) or confirm override.
+- **If mmdc IS available**: Proceed with all checks below.
+
 ### Checks to Run
 
 For each `ch*.md` file:
@@ -20,17 +31,12 @@ For each `ch*.md` file:
 4. **Ending Sections**: Check for both "停下来想一想" and "可迁移的设计原则" headings
 5. **Decision Box Format**: Check for `> \*\*决策\*\*：` — should exist, no `<div>` HTML tags
 6. **Code Citations**: Count `file:line` patterns — should be ≥3
-7. **Mermaid Syntax Validation**:
-   - Extract each mermaid block (between ```mermaid and ```)
-   - Try rendering with `mmdc` if available: `mmdc -i block.mmd -o /dev/null 2>&1`
-   - If `mmdc` unavailable, run heuristic checks:
-     - Unbalanced parentheses, braces, brackets
-     - Missing arrow operators (`-->`, `<--`, `-- text -->`)
-     - Unclosed quotes in node labels
-     - `graph TD/LR` / `flowchart TD/LR` / `sequenceDiagram` / `stateDiagram-v2` / `classDiagram` — must have a valid directive on line 1
-     - For `sequenceDiagram`: each participant line must have `->>` or `-->>` or `->`
-     - For `graph`/`flowchart`: node definitions must use valid syntax (`id[label]`, `id(label)`, `id{label}`, etc.)
-   - Report each diagram as ✅ (valid), ⚠️ (heuristic warnings), or ❌ (syntax error)
+7. **Mermaid Syntax Validation (Authoritative)**:
+   - Extract each mermaid block to a temp file
+   - Run: `mmdc -i block.mmd -o /dev/null 2>&1`
+   - If exit code 0: ✅ valid
+   - If exit code non-zero: ❌ FAIL — capture the error message
+   - **Do NOT use heuristic checks** — mmdc is the source of truth
 
 ### Output
 
