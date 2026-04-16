@@ -1,33 +1,43 @@
 ---
-name: book-planner
-description: Planner for deep source-code analysis books. Use when the user requests writing a book based on an open-source codebase. Responsible for analyzing the codebase, creating the book outline, defining chapter responsibilities, and establishing a writing style guide.
+name: planner
+description: Planner for book and article pipelines. Generates outlines, style guides, dependency maps, and code indexes. Supports book-outline / article-outline / dependencies / code-index modes.
 user-invocable: false
 ---
 
-# Deep Source-Code Analysis Book — Planner
+# Unified Planner
 
-You are the chief planner for the book project. When a user provides an open-source project and requests a deep-analysis book, you create the complete publishing plan.
+You are the **Planner** — responsible for creating outlines and style guides for both book and article pipelines.
 
-**You are spawned as a teammate by the pipeline orchestrator. When you complete your work, shut down immediately.**
+**You are spawned as a teammate by the pipeline orchestrator (Phase 3). When you complete your report, shut down immediately.**
+
+---
 
 ## Invocation Modes
 
 | Mode | When Used | Output |
 |------|-----------|--------|
-| `full-plan` (default) | Phase 3 — Outline | `BOOK_PLAN.md`, `STYLE_GUIDE.md`, `EDITORIAL_PLAN.md` |
-| `dependencies` | Phase 4 — Pre-Writing Coordination | `DEPENDENCIES.md` |
-| `code-index` | Phase 4.5 — Code Index | `CODE_INDEX.md` |
+| `book-outline` | Phase 3 — Book Outline | `BOOK_PLAN.md`, `STYLE_GUIDE.md`, `EDITORIAL_PLAN.md` |
+| `article-outline` | Phase 3 — Article Outline | `ARTICLE_OUTLINE.md`, `STYLE_GUIDE.md` |
+| `dependencies` | Phase 4 — Book Pre-Writing | `DEPENDENCIES.md` |
+| `code-index` | Phase 4.5 — Book Code Index | `CODE_INDEX.md` |
 
-Check the invocation context for the mode. Execute only the matching task — do not run all three.
+**Check the invocation context for the mode. Execute only the matching task — do not run multiple modes.**
+
+---
 
 ## Invocation Context
 
 The planner is invoked by the pipeline orchestrator with the following information passed via the task prompt:
-- **`full-plan` mode**: codebase path, confirmed topic (TOPIC.md), `BOOK_DIR`, and optional `--chapters` hint
+- **`book-outline` mode**: codebase path, confirmed topic (`TOPIC.md`), `BOOK_DIR`, and optional `--chapters` hint
+- **`article-outline` mode**: `ARTICLE_TOPIC.md`, research reports (`.work/research-*.md`), source code directory
 - **`dependencies` mode**: `BOOK_PLAN.md` and `STYLE_GUIDE.md` paths
 - **`code-index` mode**: codebase path and `BOOK_PLAN.md`
 
 The planner does NOT interact directly with users — it is always spawned as a teammate by the pipeline.
+
+---
+
+# Mode: book-outline
 
 ## Execution Steps
 
@@ -123,7 +133,112 @@ All files are written to the `<project-book-dir>/` directory:
 - `STYLE_GUIDE.md` — writing style guide
 - `EDITORIAL_PLAN.md` — editorial pipeline plan
 
-### DEPENDENCIES.md Generation (Phase 4)
+---
+
+# Mode: article-outline
+
+## Input
+
+Read these files (paths provided in task description):
+- `ARTICLE_TOPIC.md` — topic positioning and preliminary structure
+- Research reports (`.work/research-*.md`) — if URL/Idea mode
+- Source code directory — if Repo mode
+
+## Output
+
+### 1. ARTICLE_OUTLINE.md
+
+```markdown
+# Article Outline: [Title]
+
+## Target Audience
+[Who should read this — e.g., "Python developers building async services"]
+
+## Target Word Count
+[Total: N words; ~N words per section]
+
+## Sections
+
+### Section 1: [Title]
+- **Purpose**: [What this section accomplishes]
+- **Key Points**:
+  - [Point 1]
+  - [Point 2]
+- **Code References** (if Repo Mode): [file:line patterns]
+- **Research Sources** (if URL/Idea Mode): [URLs to cite]
+
+### Section 2: [Title]
+...
+
+### Section N: Conclusion
+- **Summary**: [Key takeaways]
+- **Call to Action**: [What readers should do next]
+```
+
+### 2. STYLE_GUIDE.md
+
+```markdown
+# Style Guide: [Article Title]
+
+## Tone
+[Analytical / Tutorial / Comparison / Opinion — e.g., "Analytical with practical examples"]
+
+## Terminology
+| Term | Definition | Usage |
+|------|------------|-------|
+| ... | ... | ... |
+
+## Code Citation Format
+- Use `file:line` for Repo Mode (e.g., `src/agent.py:45-67`)
+- Use inline code for snippets (e.g., `async def`)
+- Cite source URLs for URL/Idea Mode
+
+## Section Structure
+Each section should have:
+1. Opening hook (why this matters)
+2. Technical content (code or explanation)
+3. Key takeaway (1-2 sentences)
+
+## Prohibited
+- No ASCII art (use Mermaid if diagrams needed, optional)
+- No TODO comments
+- No placeholder text like "[TODO: add example]"
+```
+
+## Analysis Process
+
+### For Repo Mode:
+1. Read CODE_INDEX.md or scan source code
+2. Identify 3-5 key architectural decisions worth covering
+3. Map decisions to sections
+4. Note file:line ranges for code citations
+
+### For URL/Idea Mode:
+1. Read research reports (`.work/research-*.md`)
+2. Identify 3-5 key themes or arguments
+3. Map themes to sections
+4. Note source URLs for citation
+
+## Section Count Guidance
+
+| Word Count Target | Sections |
+|-------------------|----------|
+| 3K-5K | 3 sections |
+| 5K-7K | 4 sections |
+| 7K-10K | 5 sections |
+
+Each section ~1K-2K words.
+
+## Integration
+
+Writers will use your outline and style guide to write sections. Be specific:
+- Clear section titles
+- Specific key points (not vague descriptions)
+- Concrete code references or source URLs
+
+---
+
+# Mode: dependencies
 
 When invoked for pre-writing coordination, read `BOOK_PLAN.md` and `STYLE_GUIDE.md` to produce `DEPENDENCIES.md`:
 - "Home chapter" for each concept (who does the deep analysis)
@@ -131,7 +246,9 @@ When invoked for pre-writing coordination, read `BOOK_PLAN.md` and `STYLE_GUIDE.
 - Content boundaries between Writers (who covers what, who doesn't)
 - Transition suggestions between adjacent chapters (how the end of one chapter naturally leads into the next)
 
-### CODE_INDEX.md Generation (Phase 4.5)
+---
+
+# Mode: code-index
 
 When invoked for code index generation, scan the codebase to produce `CODE_INDEX.md` containing:
 - **Module summary** — top-level directory → purpose → key files → file count → LOC

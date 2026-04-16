@@ -128,7 +128,7 @@ Output: research reports + ARTICLE_OUTLINE.md + STYLE_GUIDE.md
 3. **Outline**:
    - Create task: "Generate ARTICLE_OUTLINE.md (3-5 sections) and STYLE_GUIDE.md (terminology, tone, format)."
    - Task must include: ARTICLE_TOPIC.md, research reports (if any), codebase path (if Repo Mode)
-   - Spawn 1 **article-planner** teammate
+   - Spawn 1 **planner** teammate with `article-outline` mode
    - Follow Shutdown Pattern
 
 4. Present outline summary to user; confirm before writing.
@@ -174,7 +174,7 @@ Output: `.work/review-article.md` + `.work/proofread-article.md`
 
 2. **Proofread**:
    - Create task: "Proofread article for typos, punctuation, formatting, terminology. Write `.work/proofread-article.md`."
-   - Spawn 1 **article-proofreader** teammate
+   - Spawn 1 **proofreader** teammate with `article` mode
 
 3. Follow Shutdown Pattern (wait for both to complete)
 

@@ -217,7 +217,7 @@ Output: BOOK_PLAN.md + STYLE_GUIDE.md + EDITORIAL_PLAN.md
 
 1. Create team `book-pipeline` with `TeamCreate({ team_name: "book-pipeline", description: "Book publishing pipeline" })`
 2. Create task: "Analyze codebase, generate BOOK_PLAN.md (chapter outline with Theme field per chapter), STYLE_GUIDE.md (writing guide), and EDITORIAL_PLAN.md (pipeline plan)."
-3. Spawn 1 **book-planner** teammate with `full-plan` mode, passing codebase path, TOPIC.md, `BOOK_DIR`, and `--chapters` hint.
+3. Spawn 1 **planner** teammate with `book-outline` mode, passing codebase path, TOPIC.md, `BOOK_DIR`, and `--chapters` hint.
 4. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 5. Present outline summary to the user; confirm before moving to coordination.
 
@@ -231,7 +231,7 @@ Output: DEPENDENCIES.md (chapter dependency graph + cross-reference conventions)
 **Before Writers start in parallel, make sure they all know where their boundaries are.**
 
 1. Create task: "Read BOOK_PLAN.md and STYLE_GUIDE.md, generate DEPENDENCIES.md with home chapter, cross-reference conventions, content boundaries, transition suggestions."
-2. Spawn 1 **book-planner** teammate with `dependencies` mode.
+2. Spawn 1 **planner** teammate with `dependencies` mode.
 3. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 
 ### Phase 4.5: Code Index (Token Budget Reduction)
@@ -244,7 +244,7 @@ Output: CODE_INDEX.md (pre-computed code summary + call graph + architecture map
 **Writers and reviewers query this index instead of reading raw source — cuts token cost by 50%+.**
 
 1. Create task: "Scan codebase, produce CODE_INDEX.md with module summary, call graph, data flow map, key constants, test inventory, architecture summary."
-2. Spawn 1 **book-planner** teammate with `code-index` mode.
+2. Spawn 1 **planner** teammate with `code-index` mode.
 3. Follow Shutdown Pattern (wait for idle → shutdown → confirm).
 4. Writers and reviewers query this index instead of reading raw source — cuts token cost by 50%+.
 
@@ -412,9 +412,9 @@ Output: `.work/proofread-1.md` + `.work/proofread-2.md` + `.work/proofread-3.md`
 **4 different teammates, 4 different tasks — spawn each explicitly with mode, do NOT use auto-claim for this phase.**
 
 1. Spawn 4 teammates **IN PARALLEL** with explicit mode instructions:
-   - **book-proofreader**: prompt = "Execute `first-proofread` mode only: text proofreading (typos, punctuation, terminology, Mermaid syntax). Write `.work/proofread-1.md`."
-   - **book-proofreader**: prompt = "Execute `second-proofread` mode only: cross-reference validation (cross-references, content overlap, design decision consistency). Write `.work/proofread-2.md`."
-   - **book-proofreader**: prompt = "Execute `readability-pass` mode only: read-through (transitions, narrative coherence, pacing, tone). Write `.work/proofread-3.md`."
+   - **proofreader**: prompt = "Execute `book-first` mode only: text proofreading (typos, punctuation, terminology, Mermaid syntax). Write `.work/proofread-1.md`."
+   - **proofreader**: prompt = "Execute `book-second` mode only: cross-reference validation (cross-references, content overlap, design decision consistency). Write `.work/proofread-2.md`."
+   - **proofreader**: prompt = "Execute `book-readability` mode only: read-through (transitions, narrative coherence, pacing, tone). Write `.work/proofread-3.md`."
    - **book-preface-writer**: prompt = "Write `preface.md` based on TOPIC.md, BOOK_PLAN.md, STYLE_GUIDE.md. 1-2 pages, no Mermaid, no code citations."
 2. All 4 work in parallel. Follow Shutdown Pattern for each.
 3. Report to the user when all are complete
