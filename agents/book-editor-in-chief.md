@@ -43,10 +43,10 @@ Read these files first:
 ### P0 (Block Release)
 1. Unify all decision box formats to STYLE_GUIDE standard blockquote (`>`) format — convert ANY ASCII box characters (┌──┐ / │ / └──┘) or HTML `<div>` tags to blockquote
 2. Replace any remaining ASCII art diagrams with Mermaid
-3. Add missing "Stop and Think" and "Transferable Design Principles" sections
+3. Add missing "停下来想一想" and "可迁移的设计原则" sections
 
 ### P1 (Severe Experience Impact)
-4. Content deduplication — keep only in primary chapter, change others to "see Chapter X"
+4. Content deduplication — keep only in primary chapter, change others to "详见第 X 章"
 5. Fix cross-reference errors
 6. Remove self-answered reflection questions
 7. Fix tone inconsistency (tutorial style → analytical style)
