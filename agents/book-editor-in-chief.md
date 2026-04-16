@@ -43,10 +43,10 @@ Read these files first:
 ### P0 (Block Release)
 1. Unify all decision box formats to STYLE_GUIDE standard blockquote (`>`) format — convert ANY ASCII box characters (┌──┐ / │ / └──┘) or HTML `<div>` tags to blockquote
 2. Replace any remaining ASCII art diagrams with Mermaid
-3. Add missing "停下来想一想" and "可迁移的设计原则" sections
+3. Add missing "Stop and Think" and "Transferable Design Principles" sections
 
 ### P1 (Severe Experience Impact)
-4. Content deduplication — keep only in primary chapter, change others to "详见第 X 章"
+4. Content deduplication — keep only in primary chapter, change others to "see Chapter X"
 5. Fix cross-reference errors
 6. Remove self-answered reflection questions
 7. Fix tone inconsistency (tutorial style → analytical style)
@@ -82,17 +82,16 @@ After all fixes, compile everything into `book-final.md`:
 
 ---
 
-## 附录 A：文件导航图
-## 附录 B：工具参考表
-## 附录 C：设计决策汇总
-## 附录 D：术语表
-```
+## Appendix A: File Navigation Map
+## Appendix B: Tool Reference Table
+## Appendix C: Design Decision Summary
+## Appendix D: Glossary
 
-### 附录编写指南
-- **附录 A**：按功能区域分类，每个文件一行，标注主要功能和大小
-- **附录 B**：Tool 名称 | 所在文件 | Toolset | 简要描述
-- **附录 C**：从所有章节提取所有设计决策框，按主题分组，包含章节引用
-- **附录 D**：英文 | 中文 | 简要定义，按主题分组
+### Appendix Writing Guide
+- **Appendix A**: Group by functional area, one file per line, note primary function and size
+- **Appendix B**: Tool name | File | Toolset | Brief description
+- **Appendix C**: Extract all Design Decision boxes from chapters, group by topic, include chapter references
+- **Appendix D**: English | Chinese | Brief definition, group by topic
 
 ## Execution
 
