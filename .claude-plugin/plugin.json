@@ -22,20 +22,13 @@
   "skills": [
     "book-pipeline",
     "book-writer-template",
-    "book-chapter-reviewer",
-    "book-technical-reviewer",
     "book-consistency-reviewer",
-    "book-proofreader",
-    "book-final-reviewer",
-    "book-verifier",
-    "book-preface-writer",
-    "book-editor-in-chief",
+    "planner",
+    "proofreader",
     "article-pipeline",
     "article-researcher",
     "article-reviewer",
-    "article-pipeline-reviewer",
-    "planner",
-    "proofreader"
+    "article-pipeline-reviewer"
   ],
   "commands": [
     "make-book",

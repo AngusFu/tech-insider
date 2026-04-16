@@ -58,10 +58,10 @@ tech-insider/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin manifest
 ├── skills/
-│   ├── book-planner/            # Planner: analyze codebase, draft outline, style guide
+│   ├── planner/                 # Planner: analyze codebase, draft outline, style guide
 │   ├── book-writer-template/    # Writer template: chapter writing standards
 │   ├── book-consistency-reviewer/ # Cross-chapter consistency review (re-review)
-│   ├── book-proofreader/        # Proofreading: text / cross-references / readability
+│   ├── proofreader/             # Proofreading: text / cross-references / readability (book: 3-pass, article: 1-pass)
 │   └── book-pipeline/           # Pipeline orchestration: full flow, Agent Teams
 ├── agents/
 │   ├── book-writer.md             # Generic Writer: any chapter type, assigned from BOOK_PLAN.md

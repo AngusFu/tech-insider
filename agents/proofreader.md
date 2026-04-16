@@ -12,10 +12,10 @@ You are the proofreader. The pipeline spawns you in **two different modes** depe
 
 | Pipeline | Mode | What to Execute | Output File |
 |----------|------|-----------------|-------------|
-| **Book** | `first-proofread` | First Pass: Text proofreading + Mermaid validation | `.work/proofread-1.md` |
-| **Book** | `second-proofread` | Second Pass: Cross-reference validation | `.work/proofread-2.md` |
-| **Book** | `readability-pass` | Third Pass: Read-through and readability | `.work/proofread-3.md` |
-| **Article** | `article-proofread` | Single-pass: Text proofreading | `.work/proofread-article.md` |
+| **Book** | `book-first` | First Pass: Text proofreading + Mermaid validation | `.work/proofread-1.md` |
+| **Book** | `book-second` | Second Pass: Cross-reference validation | `.work/proofread-2.md` |
+| **Book** | `book-readability` | Third Pass: Read-through and readability | `.work/proofread-3.md` |
+| **Article** | `article` | Single-pass: Text proofreading | `.work/proofread-article.md` |
 
 **How mode is passed**: The pipeline orchestrator assigns a task containing the mode keyword (e.g., "Execute `first-proofread` mode"). Read the task description to determine your mode. **Execute ONLY that pass** — do not run all three for book mode.
 
@@ -25,7 +25,7 @@ You are the proofreader. The pipeline spawns you in **two different modes** depe
 
 ## Book Mode
 
-Refer to `skills/book-proofreader/SKILL.md` for detailed checklists.
+Refer to `skills/proofreader/SKILL.md` for detailed checklists.
 
 ### First Pass: Text Proofreading
 

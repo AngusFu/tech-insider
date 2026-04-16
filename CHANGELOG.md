@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of tech-insider plugin
-- 5 skills: book-planner, book-writer-template, book-consistency-reviewer, book-proofreader, book-pipeline (pipeline orchestration)
-- 11 agents: book-planner (dynamic chapters), 5 writers (foundation/core-loop/core-system/tools/integration), book-chapter-reviewer (structure review), book-technical-reviewer (fact-checking), book-verifier, book-editor-in-chief, book-preface-writer
+- 5 skills: planner, book-writer-template, book-consistency-reviewer, proofreader, book-pipeline (pipeline orchestration)
+- 11 agents: planner (dynamic chapters), 5 writers (foundation/core-loop/core-system/tools/integration), book-chapter-reviewer (structure review), book-technical-reviewer (fact-checking), book-verifier, book-editor-in-chief, book-preface-writer
 - `/tech-insider:make-book` command for full pipeline launch
 - Complete documentation: README.md, workflow-experience.md
 - `.work/` hidden directory for intermediate files (review/proofread/verification reports)

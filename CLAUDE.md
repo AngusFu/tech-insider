@@ -30,10 +30,10 @@ tech-insider/
 │   └── marketplace.json         # Marketplace registration
 ├── skills/
 │   ├── book-pipeline/SKILL.md   # Pipeline orchestration — full flow, Agent Teams
-│   ├── book-planner/SKILL.md    # Planner: analyze codebase, draft outline, style guide
+│   ├── planner/SKILL.md         # Planner: analyze codebase, draft outline, style guide (book-outline / article-outline / dependencies / code-index modes)
 │   ├── book-writer-template/SKILL.md  # Writer template: chapter structure, writing rules
 │   ├── book-consistency-reviewer/SKILL.md  # Cross-chapter consistency review
-│   └── book-proofreader/SKILL.md # Three-pass proofreading (first/second/readability modes)
+│   └── proofreader/SKILL.md     # Three-pass proofreading (book-first / book-second / book-readability / article modes)
 ├── agents/
 │   ├── book-writer.md          # Generic Writer: any chapter type, assigned from BOOK_PLAN.md
 │   ├── book-chapter-reviewer.md  # Structure review (initial review)
@@ -140,7 +140,7 @@ Foundation chapters go first (set tone). After style checkpoint, remaining chapt
 
 ### Mermaid Is the Only Diagram Choice
 No ASCII art allowed. All architecture diagrams must be Mermaid.
-**Validation**: `mmdc -i file.mmd -o /dev/null` is mandatory in Phase 8 (book-verifier), Phase 9 (book-proofreader first pass), and Phase 10.5 (book-final-reviewer).
+**Validation**: `mmdc -i file.mmd -o /dev/null` is mandatory in Phase 8 (book-verifier), Phase 9 (proofreader book-first pass), and Phase 10.5 (book-final-reviewer).
 **No fallback**: If mmdc is not available, the pipeline must report error and wait for installation — heuristic checks are not allowed.
 
 ### CODE_INDEX.md Cuts Token Cost 50%+

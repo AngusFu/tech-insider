@@ -19,7 +19,7 @@ Check the invocation context to determine which pipeline and mode:
 
 | Pipeline | Mode | When Used | Output |
 |----------|------|-----------|--------|
-| **Book** | `full-plan` | Phase 3 — Outline | `BOOK_PLAN.md`, `STYLE_GUIDE.md`, `EDITORIAL_PLAN.md` |
+| **Book** | `book-outline` | Phase 3 — Outline | `BOOK_PLAN.md`, `STYLE_GUIDE.md`, `EDITORIAL_PLAN.md` |
 | **Book** | `dependencies` | Phase 4 — Pre-Writing | `DEPENDENCIES.md` |
 | **Book** | `code-index` | Phase 4.5 — Code Index | `CODE_INDEX.md` |
 | **Article** | `article-outline` | Phase 3 — Article Outline | `ARTICLE_OUTLINE.md`, `STYLE_GUIDE.md` |
