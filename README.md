@@ -123,13 +123,13 @@ flowchart TD
 
     S1 --> S2 --> S3 --> S4 --> S45 --> S5 --> S6
     S6 -->|Needs rework| S7
-    S6 -->|Ready for publication| S8
+    S6 -->|Ready| S8
     S7 -->|Re-initial review| S6
-    S7 -->|Exceeds 2 rounds| S6
+    S7 -->|Exceeds 2 rounds| S8
     S8 --> S9 --> S95 --> S10 --> S105 --> S106 --> S11
     S105 -->|Needs fixes (max 1 round)| S10
-    S105 -->|Pass or user override| S11
-    S106 -->|Compilation errors (max 1 loop)| S10
+    S105 -->|Pass| S11
+    S106 -->|Compilation errors (max 1 loopback)| S10
 ```
 
 ## Chapter Structure Template
